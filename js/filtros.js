@@ -140,13 +140,15 @@ function aplicarFiltros() {
 function atualizarDashboard(lista) {
     var total      = lista.length;
     var online     = lista.filter(function(d) { return isOnline(d); }).length;
-    var solar      = lista.filter(function(d) { return String(d.ENERGIZACAO||'').toUpperCase().trim() === 'SOLAR'; }).length;
+    var solar        = lista.filter(function(d) { return String(d.ENERGIZACAO||'').toUpperCase().trim() === 'SOLAR'; }).length;
+    var convencional = lista.filter(function(d) { return String(d.ENERGIZACAO||'').toUpperCase().trim() === 'CONVENCIONAL'; }).length;
     var concluidos = lista.filter(function(d) { return isConcluido(d); }).length;
     var pendentes  = total - concluidos;
 
     setCard('cardTotal',      total);
     setCard('cardOnline',     online);
-    setCard('cardSolar',      solar);
+    setCard('cardSolar',        solar);
+    setCard('cardConvencional', convencional);
     setCard('cardPendentes',  pendentes);
     setCard('cardConcluidos', concluidos);
 
