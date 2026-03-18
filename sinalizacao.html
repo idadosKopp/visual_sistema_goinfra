@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOINFRA — Sinalização</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/auth.js"></script>
+    <style>
+        .placa-val { background:rgba(0,120,255,0.12); color:#4d9fff; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600; }
+        .placa-zero{ background:rgba(255,71,87,0.10);  color:rgba(232,237,245,0.3); padding:2px 8px; border-radius:12px; font-size:10px; }
+        .placa-na  { color:rgba(232,237,245,0.2); font-size:10px; }
+        .tag-ok    { background:rgba(0,208,132,0.15); color:#00d084; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+        .tag-pend  { background:rgba(255,71,87,0.12); color:#ff4757; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+        .status-obs{ font-size:10px; color:rgba(232,237,245,0.45); margin-top:2px; }
+    </style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="loader-ring"></div>CARREGANDO...</div>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand"><span>🛣️</span> GOINFRA</div>
+            <div class="sub">Monitoramento</div>
+        </div>
+        <nav>
+            <a href="index.html"><span class="nav-icon">📊</span> Painel</a>
+            <a href="rotas.html"><span class="nav-icon">🗺️</span> Rotas</a>
+            <a href="sinalizacao.html" class="active"><span class="nav-icon">🪧</span> Sinalização</a>
+            <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
+        </nav>
+        <div class="sidebar-footer"><a class="sair" onclick="sair()">⏻ Sair</a></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>🪧 Sinalização de Placas</h1>
+                <p>Status final por equipamento · Placas instaladas</p>
+            </div>
+        </div>
+
+        <div class="page-body">
+
+            <!-- 2 Cards -->
+            <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:18px;">
+                <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;">
+                    <div class="card-icon">📦</div>
+                    <div class="card-value" id="sCardTotal">—</div>
+                    <div class="card-label">Total Equipamentos</div>
+                </div>
+                <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
+                    <div class="card-icon">✅</div>
+                    <div class="card-value" id="sCardOk">—</div>
+                    <div class="card-label">Finalizados (OK)</div>
+                </div>
+                <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;">
+                    <div class="card-icon">⏳</div>
+                    <div class="card-value" id="sCardPend">—</div>
+                    <div class="card-label">Pendentes</div>
+                </div>
+                <div class="card" style="--card-accent:#ffd32a;--card-color:#ffd32a;">
+                    <div class="card-icon">📋</div>
+                    <div class="card-value" id="sCardSemStatus">—</div>
+                    <div class="card-label">Sem Status</div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filtros-bar" style="margin-bottom:16px;">
+                <div class="filtro-item busca-item">
+                    <label>🔍 Busca</label>
+                    <input type="text" id="sBusca" placeholder="ID, município, rodovia...">
+                </div>
+                <div class="filtro-item">
+                    <label>Status Final</label>
+                    <select id="sFiltroStatus">
+                        <option value="">Todos</option>
+                        <option value="OK">✅ OK</option>
+                        <option value="PENDENTE">⚠️ Pendente</option>
+                        <option value="SEM">📋 Sem Status</option>
+                    </select>
+                </div>
+                <div class="filtro-item">
+                    <label>Município</label>
+                    <select id="sFiltroMun"></select>
+                </div>
+                <div class="filtro-item">
+                    <label>Rodovia</label>
+                    <select id="sFiltroRod"></select>
+                </div>
+                <div class="filtro-item">
+                    <label>Energia</label>
+                    <select id="sFiltroEnergia">
+                        <option value="">Todas</option>
+                        <option value="SOLAR">☀️ Solar</option>
+                        <option value="CONVENCIONAL">⚡ Convencional</option>
+                    </select>
+                </div>
+                <div class="filtro-item">
+                    <label>Tipo Composta</label>
+                    <select id="sFiltroComposta">
+                        <option value="">Todas</option>
+                        <option value="TERRESTRE">Composta</option>
+                        <option value="AEREA">Comp. Aérea</option>
+                    </select>
+                </div>
+                <button class="btn-limpar" onclick="sLimpar()">✕ Limpar</button>
+            </div>
+
+            <!-- Tabela -->
+            <div class="tabela-wrapper">
+                <div class="tabela-header-bar">
+                    <h3>Placas por Equipamento</h3>
+                    <span class="tabela-count" id="sCount">—</span>
+                </div>
+                <div class="tabela-scroll">
+                    <table id="tabelaSin">
+                        <thead>
+                            <tr>
+                                <th>ID Local</th>
+                                <th>ID Equip.</th>
+                                <th>Rodovia</th>
+                                <th>KM</th>
+                                <th>Município</th>
+                                <th>Sentido</th>
+                                <th>Vel.</th>
+                                <th>Energia</th>
+                                <th>R19 Junto</th>
+                                <th>Composta</th>
+                                <th>Comp. Aérea</th>
+                                <th>R19</th>
+                                <th>Educativa</th>
+                                <th>R19 Ant/Dep</th>
+                                <th>Status Final</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+var dadosSin = [];
+var COL_STATUS = 'Status_Final';
+
+// Colunas de placas com detecção automática
+var MAPA_PLACAS = [
+    { key:'r19junto', variantes:['R_19_junto_equipamento','R_19_JUNTO_EQUIPAMENTO','r19_junto_equipamento'], nome:'R19 Junto' },
+    { key:'composta', variantes:['COMPOSTA','Composta','composta'],                                          nome:'Composta' },
+    { key:'aerea',    variantes:['COMPOSTA_AEREA','Composta_Aerea','composta_aerea','COMPOSTA AEREA'],       nome:'Comp. Aérea' },
+    { key:'r19',      variantes:['R_19','R19','r_19','r19'],                                                 nome:'R19' },
+    { key:'educ',     variantes:['EDUCATIVA','Educativa','educativa'],                                       nome:'Educativa' },
+    { key:'r19ad',    variantes:['R_19_ANTES_DEPOIS','R19_ANTES_DEPOIS','R_19_antes_depois'],                nome:'R19 Ant/Dep' }
+];
+var colMap = {}; // key -> coluna real no Excel
+
+function detectarColunas(linha) {
+    var chaves = Object.keys(linha);
+    MAPA_PLACAS.forEach(function(p) {
+        for (var i=0; i<p.variantes.length; i++) {
+            var v = p.variantes[i];
+            var found = chaves.find(function(c){ return c.trim().toLowerCase() === v.toLowerCase(); });
+            if (found) { colMap[p.key] = found; break; }
+        }
+    });
+
+    // Status_Final
+    var statusVars = ['Status_Final','STATUS_FINAL','status_final','Status Final'];
+    for (var i=0; i<statusVars.length; i++) {
+        var f = chaves.find(function(c){ return c.trim().toLowerCase() === statusVars[i].toLowerCase(); });
+        if (f) { COL_STATUS = f; break; }
+    }
+
+    // Campos texto
+    var campMap = {
+        'id_local':    ['id_local','ID_LOCAL','Id_Local'],
+        'ID_Equip':    ['ID_Equip','id_equip','ID_EQUIP'],
+        'rodovia':     ['rodovia','RODOVIA','Rodovia'],
+        'kmSre':       ['kmSre','KMSRE','km','KM'],
+        'municipio':   ['municipio','MUNICIPIO','Município'],
+        'SENTIDO':     ['SENTIDO','sentido','Sentido'],
+        'VELOCIDADE':  ['VELOCIDADE_DE_FISCALIZACAO','velocidade','VELOCIDADE'],
+        'ENERGIZACAO': ['ENERGIZACAO','energizacao','Energizacao','ENERGIA']
+    };
+    Object.keys(campMap).forEach(function(k) {
+        var vars = campMap[k];
+        for (var i=0; i<vars.length; i++) {
+            var f = chaves.find(function(c){ return c.trim().toLowerCase() === vars[i].toLowerCase(); });
+            if (f) { colMap[k] = f; break; }
+        }
+    });
+    console.log('Mapeamento:', colMap, '| Status:', COL_STATUS);
+}
+
+function g(d, key) {
+    var col = colMap[key] || key;
+    var v = d[col];
+    return (v !== undefined && v !== null) ? String(v).trim() : '';
+}
+
+function numVal(d, key) {
+    var v = g(d, key);
+    if (v === '') return null;
+    return parseFloat(v.replace(',','.'));
+}
+
+function isOk(d) {
+    var sf = g(d, COL_STATUS).toUpperCase();
+    return sf === 'OK' || sf.startsWith('OK');
+}
+function isSemStatus(d) {
+    return g(d, COL_STATUS) === '';
+}
+
+function placaCell(d, key) {
+    var v = numVal(d, key);
+    if (v === null) return '<td style="text-align:center;"><span class="placa-na">—</span></td>';
+    if (v === 0)    return '<td style="text-align:center;"><span class="placa-zero">0</span></td>';
+    return '<td style="text-align:center;"><span class="placa-val">'+v+'</span></td>';
+}
+
+function statusCell(d) {
+    var sf   = g(d, COL_STATUS);
+    var upper= sf.toUpperCase();
+    if (sf === '')         return '<td><span class="placa-na">—</span></td>';
+    if (upper === 'OK')    return '<td><span class="tag-ok">✓ OK</span></td>';
+    // Pendente com observação
+    var obs = sf.replace(/^PENDENTE\s*[-–]?\s*/i,'').trim();
+    return '<td><span class="tag-pend">⚠️ Pendente</span>'+(obs?'<div class="status-obs">'+obs+'</div>':'')+'</td>';
+}
+
+function carregarSinalizacao() {
+    fetch('data/sinalizacao_placas.xlsx')
+        .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
+        .then(function(buf){
+            var wb = XLSX.read(buf,{type:'array'});
+            var sheet = wb.Sheets[wb.SheetNames[0]];
+
+            // Detecta se primeira linha é totais (sem texto identificável)
+            var teste = XLSX.utils.sheet_to_json(sheet,{defval:''});
+            var primeirasCols = Object.keys(teste[0]||{});
+            var temHeader = primeirasCols.some(function(k){
+                return ['id_local','id_equip','rodovia','municipio'].indexOf(k.toLowerCase().trim()) !== -1;
+            });
+            dadosSin = temHeader ? teste : XLSX.utils.sheet_to_json(sheet,{defval:'',range:1});
+
+            // Remove linhas totalmente vazias
+            dadosSin = dadosSin.filter(function(d){
+                return Object.values(d).some(function(v){ return String(v).trim() !== ''; });
+            });
+
+            console.log('Carregados:', dadosSin.length);
+            if (dadosSin.length > 0) detectarColunas(dadosSin[0]);
+
+            var loader = document.getElementById('loader');
+            if (loader){ loader.style.opacity='0'; setTimeout(function(){loader.style.display='none';},400); }
+
+            preencherFiltros();
+            renderizar(dadosSin);
+        })
+        .catch(function(err){
+            console.error(err);
+            var loader = document.getElementById('loader');
+            if (loader) loader.innerHTML='<div style="color:#ff4757;font-family:Inter;font-size:13px;text-align:center;padding:30px;">⚠️ '+err.message+'<br><small style="color:rgba(255,255,255,0.3);">data/sinalizacao_placas.xlsx</small></div>';
+        });
+}
+
+function preencherFiltros() {
+    preencherSel('sFiltroMun',  colMap['municipio']  || 'municipio');
+    preencherSel('sFiltroRod',  colMap['rodovia']    || 'rodovia');
+    ['sBusca','sFiltroStatus','sFiltroMun','sFiltroRod','sFiltroEnergia','sFiltroComposta'].forEach(function(id){
+        var el=document.getElementById(id);
+        if (el) el.addEventListener(id==='sBusca'?'input':'change', filtrar);
+    });
+}
+
+function preencherSel(id, campo) {
+    var sel=document.getElementById(id); if(!sel) return;
+    var vals=[];
+    dadosSin.forEach(function(d){ var v=d[campo]; if(v&&String(v).trim()&&vals.indexOf(String(v).trim())===-1) vals.push(String(v).trim()); });
+    vals.sort();
+    sel.innerHTML='<option value="">Todos</option>';
+    vals.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+}
+
+function sLimpar() {
+    ['sFiltroStatus','sFiltroMun','sFiltroRod','sFiltroEnergia','sFiltroComposta'].forEach(function(id){
+        var el=document.getElementById(id); if(el) el.value='';
+    });
+    var b=document.getElementById('sBusca'); if(b) b.value='';
+    filtrar();
+}
+
+function filtrar() {
+    var status   = (document.getElementById('sFiltroStatus')  ||{}).value||'';
+    var mun      = (document.getElementById('sFiltroMun')     ||{}).value||'';
+    var rod      = (document.getElementById('sFiltroRod')     ||{}).value||'';
+    var energ    = (document.getElementById('sFiltroEnergia') ||{}).value||'';
+    var composta = (document.getElementById('sFiltroComposta')||{}).value||'';
+    var busca    = ((document.getElementById('sBusca')||{}).value||'').toLowerCase().trim();
+
+    var col_mun   = colMap['municipio']  || 'municipio';
+    var col_rod   = colMap['rodovia']    || 'rodovia';
+    var col_energ = colMap['ENERGIZACAO']|| 'ENERGIZACAO';
+
+    var lista = dadosSin.filter(function(d) {
+        if (mun   && String(d[col_mun]||'').trim() !== mun)   return false;
+        if (rod   && String(d[col_rod]||'').trim() !== rod)   return false;
+        if (energ && String(d[col_energ]||'').toUpperCase().trim() !== energ) return false;
+
+        if (status === 'OK')      { if (!isOk(d))                           return false; }
+        if (status === 'PENDENTE'){ if (isOk(d) || isSemStatus(d))          return false; }
+        if (status === 'SEM')     { if (!isSemStatus(d))                    return false; }
+
+        // Filtro tipo composta
+        if (composta === 'TERRESTRE') {
+            var vc = numVal(d,'composta'); if (vc === null || vc === 0) return false;
+        }
+        if (composta === 'AEREA') {
+            var va = numVal(d,'aerea'); if (va === null || va === 0) return false;
+        }
+
+        if (busca) {
+            var txt = [g(d,'id_local'),g(d,'ID_Equip'),g(d,'municipio'),g(d,'rodovia')].join(' ').toLowerCase();
+            if (txt.indexOf(busca) === -1) return false;
+        }
+        return true;
+    });
+
+    renderizar(lista);
+}
+
+function renderizar(lista) {
+    var total   = lista.length;
+    var ok      = lista.filter(isOk).length;
+    var sem     = lista.filter(isSemStatus).length;
+    var pend    = total - ok - sem;
+
+    function sc(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+    sc('sCardTotal',  total);
+    sc('sCardOk',     ok);
+    sc('sCardPend',   pend);
+    sc('sCardSemStatus', sem);
+
+    var countEl = document.getElementById('sCount');
+    if (countEl) countEl.textContent = total + ' registros';
+
+    var tbody = document.querySelector('#tabelaSin tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:30px;color:var(--text-muted);">Nenhum resultado.</td></tr>';
+        return;
+    }
+
+    lista.forEach(function(d) {
+        var rowBg = isOk(d) ? 'background:rgba(0,208,132,0.03);' : '';
+        var energVal = g(d,'ENERGIZACAO').toUpperCase();
+        var energIcon = energVal === 'SOLAR' ? '☀️' : energVal === 'CONVENCIONAL' ? '⚡' : '';
+
+        tbody.innerHTML +=
+            '<tr style="'+rowBg+'">' +
+            '<td style="font-size:9px;color:rgba(232,237,245,0.4);">'+ g(d,'id_local') +'</td>' +
+            '<td><strong>'+ g(d,'ID_Equip') +'</strong></td>' +
+            '<td>'+ g(d,'rodovia') +'</td>' +
+            '<td style="text-align:center;">'+ g(d,'kmSre') +'</td>' +
+            '<td>'+ g(d,'municipio') +'</td>' +
+            '<td style="text-align:center;">'+ g(d,'SENTIDO') +'</td>' +
+            '<td style="text-align:center;">'+ g(d,'VELOCIDADE') +'</td>' +
+            '<td style="font-size:11px;">'+ energIcon +' '+ energVal +'</td>' +
+            placaCell(d,'r19junto') +
+            placaCell(d,'composta') +
+            placaCell(d,'aerea') +
+            placaCell(d,'r19') +
+            placaCell(d,'educ') +
+            placaCell(d,'r19ad') +
+            statusCell(d) +
+            '</tr>';
+    });
+}
+
+carregarSinalizacao();
+</script>
+</body>
+</html>
