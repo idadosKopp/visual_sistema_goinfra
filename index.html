@@ -75,15 +75,31 @@
       color: rgba(232,237,245,0.5);
       letter-spacing: 0.4px;
     }
-    .btn-cob:hover { background: rgba(255,255,255,0.08); }
+       .btn-cob:hover { background: rgba(255,255,255,0.08); }
     .cob-select {
       font-size: 11px;
       padding: 4px 8px;
       border-radius: 6px;
-      background: rgba(255,255,255,0.06);
+      background: #141c2e;
       border: 1px solid rgba(255,255,255,0.15);
       color: rgba(232,237,245,0.8);
       min-width: 150px;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(232%2C237%2C245%2C0.4)'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+    .cob-select:focus {
+      border-color: rgba(0,120,255,0.5);
+      background-color: #141c2e;
+    }
+    .cob-select option {
+      background: #141c2e;
+      color: #e8edf5;
     }
   </style>
 </head>
@@ -115,7 +131,7 @@
     <div class="page-header">
       <div>
         <h1>📊 Painel Geral</h1>
-        <p>Checklist de instalação e status das NIS</p>
+        <p>Checklist de instalação e status das Faixas</p>
       </div>
     </div>
 
@@ -136,12 +152,7 @@
         <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;">
           <div class="card-icon">📦</div>
           <div class="card-value" id="cardTotal">—</div>
-          <div class="card-label">Total de NIS</div>
-        </div>
-        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
-          <div class="card-icon">✅</div>
-          <div class="card-value" id="cardOnline">—</div>
-          <div class="card-label">Online</div>
+          <div class="card-label">Total de Faixas</div>
         </div>
         <div class="card" style="--card-accent:#ffd32a;--card-color:#ffd32a;">
           <div class="card-icon">☀️</div>
@@ -159,9 +170,14 @@
           <div class="card-label">Pendentes</div>
         </div>
         <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
+          <div class="card-icon">✅</div>
+          <div class="card-value" id="cardOnline">—</div>
+          <div class="card-label">Status Online</div>
+        </div>
+        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
           <div class="card-icon">🏁</div>
           <div class="card-value" id="cardConcluidos">—</div>
-          <div class="card-label">Concluídos</div>
+          <div class="card-label">Etapas Concluídas</div>
         </div>
       </div>
 
@@ -289,12 +305,12 @@
 
         <!-- KPIs -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">
-          <div class="card" style="--card-accent:#ef4444;--card-color:#ef4444;padding:12px 14px;">
+          <div class="card" style="--card-accent:#1165e4;--card-color:#1165e4;padding:12px 14px;">
             <div class="card-icon" style="font-size:14px;">📶</div>
             <div class="card-value" id="cobTIM" style="font-size:1.4rem;">—</div>
             <div class="card-label" style="font-size:9px;">TIM com sinal</div>
           </div>
-          <div class="card" style="--card-accent:#f97316;--card-color:#f97316;padding:12px 14px;">
+          <div class="card" style="--card-accent:#ee2409;--card-color:#ee2409;padding:12px 14px;">
             <div class="card-icon" style="font-size:14px;">📶</div>
             <div class="card-value" id="cobCLARO" style="font-size:1.4rem;">—</div>
             <div class="card-label" style="font-size:9px;">CLARO com sinal</div>
@@ -310,7 +326,7 @@
             <div class="card-value" id="cobSemSinal" style="font-size:1.4rem;">—</div>
             <div class="card-label" style="font-size:9px;">Sem sinal (todas)</div>
           </div>
-          <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;padding:12px 14px;">
+          <div class="card" style="--card-accent:#099921;--card-color:#099921;padding:12px 14px;">
             <div class="card-icon" style="font-size:14px;">📍</div>
             <div class="card-value" id="cobTotal" style="font-size:1.4rem;">—</div>
             <div class="card-label" style="font-size:9px;">Total locais</div>
@@ -324,7 +340,7 @@
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:14px;">
           <div id="filtrosCobWrap" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.35);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">🏙️ Município</label>
+            <label style="font-size:10px;font-weight:600;color:rgba(220, 220, 236, 0.35);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">🏙️ Município</label>
             <select class="cob-select" id="cobFiltroMun" onchange="aplicarFiltroCob()">
               <option value="">Todos</option>
             </select>
@@ -343,8 +359,8 @@
                 <tr>
                   <th>Estudo Técnico</th>
                   <th>Município</th>
-                  <th style="color:#ef4444;">TIM</th>
-                  <th style="color:#f97316;">CLARO</th>
+                  <th style="color:#1165e4;">TIM</th>
+                  <th style="color:#ee2409;">CLARO</th>
                   <th style="color:#a855f7;">VIVO</th>
                   <th>Dominante</th>
                 </tr>
