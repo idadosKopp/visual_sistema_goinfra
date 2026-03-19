@@ -1,218 +1,906 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOINFRA — Painel</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="js/auth.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOINFRA — Painel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/auth.js"></script>
+  <style>
+    .toggle-3ni-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 10px 16px;
+      background: rgba(255,200,0,0.06);
+      border: 1px solid rgba(255,200,0,0.18);
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    .toggle-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(232,237,245,0.85);
+      letter-spacing: 0.4px;
+      flex: 1;
+      min-width: 160px;
+    }
+    .toggle-label .toggle-sub {
+      display: block;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(232,237,245,0.4);
+      margin-top: 2px;
+    }
+    .btn-toggle-3ni {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: 1.5px solid rgba(255,200,0,0.35);
+      background: rgba(255,255,255,0.04);
+      color: rgba(232,237,245,0.5);
+      letter-spacing: 0.5px;
+    }
+    .btn-toggle-3ni.ativo {
+      background: rgba(255,200,0,0.14);
+      border-color: #ffd32a;
+      color: #ffd32a;
+    }
+    .badge-54 {
+      display: none;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: rgba(255,211,42,0.13);
+      color: #ffd32a;
+      border: 1px solid rgba(255,211,42,0.35);
+      margin-left: 8px;
+    }
+    .badge-54.visivel { display: inline-block; }
+    .btn-cob {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(232,237,245,0.5);
+      letter-spacing: 0.4px;
+    }
+    .btn-cob:hover { background: rgba(255,255,255,0.08); }
+    .cob-select {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(232,237,245,0.8);
+      min-width: 150px;
+    }
+  </style>
 </head>
 <body>
 
 <div class="loader" id="loader">
-    <div class="loader-ring"></div>
-    CARREGANDO DADOS...
+  <div class="loader-ring"></div>
+  CARREGANDO DADOS...
 </div>
 
 <div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand"><span>🛣️</span> GOINFRA</div>
+      <div class="sub">Monitoramento</div>
+    </div>
+    <nav>
+      <a href="index.html" class="active"><span class="nav-icon">📊</span> Painel</a>
+      <a href="rotas.html"><span class="nav-icon">🗺️</span> Rotas</a>
+      <a href="sinalizacao.html"><span class="nav-icon">🚧</span> Sinalização</a>
+      <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a class="sair" onclick="sair()">⏻ Sair</a>
+    </div>
+  </aside>
 
-    <aside class="sidebar">
-        <div class="sidebar-logo">
-            <div class="brand"><span>🛣️</span> GOINFRA</div>
-            <div class="sub">Monitoramento</div>
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>📊 Painel Geral</h1>
+        <p>Checklist de instalação e status das NIS</p>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Toggle 3ª NI -->
+      <div class="toggle-3ni-bar">
+        <div class="toggle-label">
+          🔎 Modo 3ª NI
+          <span class="toggle-sub">Filtra apenas "3ª NI (SEI 85884132)" e "3ª NI (SEI 85890843)" — cards e barras calculam sobre os 54 equipamentos</span>
+          <span class="badge-54" id="badge54">54 equip.</span>
         </div>
-        <nav>
-            <a href="index.html" class="active"><span class="nav-icon">📊</span> Painel</a>
-            <a href="rotas.html"><span class="nav-icon">🗺️</span> Rotas</a>
-            <a href="sinalizacao.html"><span class="nav-icon">🚧</span> Sinalização</a>
-            <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
-        </nav>
-        <div class="sidebar-footer">
-            <a class="sair" onclick="sair()">⏻ Sair</a>
+        <button class="btn-toggle-3ni" id="btnToggle3NI" onclick="toggle3NI()">⚡ Ativar filtro 3ª NI</button>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+        <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;">
+          <div class="card-icon">📦</div>
+          <div class="card-value" id="cardTotal">—</div>
+          <div class="card-label">Total de NIS</div>
         </div>
-    </aside>
+        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
+          <div class="card-icon">✅</div>
+          <div class="card-value" id="cardOnline">—</div>
+          <div class="card-label">Online</div>
+        </div>
+        <div class="card" style="--card-accent:#ffd32a;--card-color:#ffd32a;">
+          <div class="card-icon">☀️</div>
+          <div class="card-value" id="cardSolar">—</div>
+          <div class="card-label">Energia Solar</div>
+        </div>
+        <div class="card" style="--card-accent:#d336d8;--card-color:#d336d8;">
+          <div class="card-icon">🔌</div>
+          <div class="card-value" id="cardConvencional">—</div>
+          <div class="card-label">Energia Convencional</div>
+        </div>
+        <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;">
+          <div class="card-icon">⏳</div>
+          <div class="card-value" id="cardPendentes">—</div>
+          <div class="card-label">Pendentes</div>
+        </div>
+        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
+          <div class="card-icon">🏁</div>
+          <div class="card-value" id="cardConcluidos">—</div>
+          <div class="card-label">Concluídos</div>
+        </div>
+      </div>
 
-    <main class="main-content">
-        <div class="page-header">
-            <div>
-                <h1>📊 Painel Geral</h1>
-                <p>Checklist de instalação e status das Faixas</p>
-            </div>
+      <!-- Barras de Progresso -->
+      <div class="progresso-section">
+        <h3>📈 Progresso por Etapa</h3>
+        <div class="etapas-grid">
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Furação</span><span class="etapa-pct" id="pct_FURACAO_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_FURACAO_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Fixação</span><span class="etapa-pct" id="pct_FIXACAO_POSTES_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_FIXACAO_POSTES_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Estruturas</span><span class="etapa-pct" id="pct_ESTRUTURAS_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_ESTRUTURAS_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Travessia</span><span class="etapa-pct" id="pct_TRAVESSIA_INTERLIGACAO_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_TRAVESSIA_INTERLIGACAO_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Sin. Aérea</span><span class="etapa-pct" id="pct__SIN_AEREA">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar__SIN_AEREA" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Sin. Terrestre</span><span class="etapa-pct" id="pct__SIN_TERRESTRE">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar__SIN_TERRESTRE" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Montagem</span><span class="etapa-pct" id="pct_MONTAGEM_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_MONTAGEM_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Mont. Estr.</span><span class="etapa-pct" id="pct_MONTAGEM_ESTRUTURAL_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_MONTAGEM_ESTRUTURAL_REALIZADO" style="width:0%"></div></div>
+          </div>
+          <div class="etapa-item">
+            <div class="etapa-header"><span class="etapa-nome">Aferição</span><span class="etapa-pct" id="pct_AFERICAO_REALIZADO">0%</span></div>
+            <div class="barra-bg"><div class="barra-fill" id="bar_AFERICAO_REALIZADO" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-bar">
+        <div class="filtro-item busca-item">
+          <label>🔍 Busca</label>
+          <input type="text" id="busca" placeholder="NIS, município, ID...">
+        </div>
+        <div class="filtro-item">
+          <label>NI</label>
+          <select id="filtroNI"></select>
+        </div>
+        <div class="filtro-item">
+          <label>🏙️ Município</label>
+          <select id="filtroMunicipio"></select>
+        </div>
+        <div class="filtro-item">
+          <label>Online/Offline</label>
+          <select id="filtroOnline">
+            <option value="">Todos</option>
+            <option value="ONLINE">✅ Online</option>
+            <option value="OFFLINE">🔴 Offline</option>
+            <option value="BRANCO">⬜ Sem status</option>
+          </select>
+        </div>
+        <div class="filtro-item">
+          <label>Situação</label>
+          <select id="filtroStatus">
+            <option value="">Todos</option>
+            <option value="CONCLUIDO">✓ Concluídos</option>
+            <option value="PENDENTE">⏳ Pendentes</option>
+          </select>
+        </div>
+        <div class="filtro-item">
+          <label>Equipe Civil</label>
+          <select id="filtroEquipeCivil"></select>
+        </div>
+        <div class="filtro-item">
+          <label>Equipe Elétrica</label>
+          <select id="filtroEquipeEletro"></select>
+        </div>
+        <div class="filtro-item">
+          <label>Energização</label>
+          <select id="filtroEnergia">
+            <option value="">Todas</option>
+            <option value="SOLAR">SOLAR</option>
+            <option value="CONVENCIONAL">CONVENCIONAL</option>
+          </select>
+        </div>
+        <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
+      </div>
+
+      <!-- Tabela Principal -->
+      <div class="tabela-wrapper">
+        <div class="tabela-header-bar">
+          <h3>Registros</h3>
+          <span class="tabela-count" id="tabelaCount">—</span>
+        </div>
+        <div class="tabela-scroll">
+          <table id="tabelaCronograma">
+            <thead>
+              <tr>
+                <th>NI</th><th>Prazo</th><th>ID Equip.</th><th>Município</th>
+                <th>Energia</th><th>Status</th><th>Eqp. Civil</th><th>Eqp. Elétrica</th>
+                <th>Furação</th><th>Fixação</th><th>Estrut.</th><th>Travessia</th>
+                <th>Sin. Aérea</th><th>Sin. Terr.</th><th>Montagem</th>
+                <th title="N/A = não se aplica">Mont.Estr.</th><th>Aferição</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cobertura de Sinal -->
+      <div class="progresso-section" style="margin-top:24px;" id="secaoCobertura">
+        <h3>📡 Cobertura de Sinal por Operadora</h3>
+        <div id="coberturaStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">
+          Carregando <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;">data/basecadastro_NIs.xlsx</code>...
         </div>
 
-        <div class="page-body">
-
-            <!-- 5 Cards -->
-            <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
-                <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;">
-                    <div class="card-icon">📦</div>
-                    <div class="card-value" id="cardTotal">—</div>
-                    <div class="card-label">Total de Faixas</div>
-                </div>
-                <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
-                    <div class="card-icon">✅</div>
-                    <div class="card-value" id="cardOnline">—</div>
-                    <div class="card-label">Online</div>
-                </div>
-                <div class="card" style="--card-accent:#ffd32a;--card-color:#ffd32a;">
-                    <div class="card-icon">☀️</div>
-                    <div class="card-value" id="cardSolar">—</div>
-                    <div class="card-label">Energia Solar</div>
-                </div>
-                <div class="card" style="--card-accent:#d336d8;--card-color:#d336d8;">
-                    <div class="card-icon">🔌</div>
-                    <div class="card-value" id="cardConvencional">—</div>
-                    <div class="card-label">Energia Convencional</div>
-                </div>
-                <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;">
-                    <div class="card-icon">⏳</div>
-                    <div class="card-value" id="cardPendentes">—</div>
-                    <div class="card-label">Pendentes</div>
-                </div>
-                <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
-                    <div class="card-icon">🏁</div>
-                    <div class="card-value" id="cardConcluidos">—</div>
-                    <div class="card-label">Concluídos</div>
-                </div>
-            </div>
-
-            <!-- Barras de Progresso por Etapa -->
-            <div class="progresso-section">
-                <h3>📈 Progresso por Etapa</h3>
-                <div class="etapas-grid">
-
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Furação</span><span class="etapa-pct" id="pct_FURACAO_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_FURACAO_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Fixação</span><span class="etapa-pct" id="pct_FIXACAO_POSTES_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_FIXACAO_POSTES_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Estruturas</span><span class="etapa-pct" id="pct_ESTRUTURAS_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_ESTRUTURAS_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Travessia</span><span class="etapa-pct" id="pct_TRAVESSIA_INTERLIGACAO_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_TRAVESSIA_INTERLIGACAO_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Sin. Aérea</span><span class="etapa-pct" id="pct__SIN_AEREA">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar__SIN_AEREA" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Sin. Terrestre</span><span class="etapa-pct" id="pct__SIN_TERRESTRE">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar__SIN_TERRESTRE" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Montagem</span><span class="etapa-pct" id="pct_MONTAGEM_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_MONTAGEM_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header">
-                            <span class="etapa-nome">Mont. Estr.</span>
-                            <span class="etapa-pct" id="pct_MONTAGEM_ESTRUTURAL_REALIZADO">0%</span>
-                        </div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_MONTAGEM_ESTRUTURAL_REALIZADO" style="width:0%"></div></div>
-                    </div>
-                    <div class="etapa-item">
-                        <div class="etapa-header"><span class="etapa-nome">Aferição</span><span class="etapa-pct" id="pct_AFERICAO_REALIZADO">0%</span></div>
-                        <div class="barra-bg"><div class="barra-fill" id="bar_AFERICAO_REALIZADO" style="width:0%"></div></div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Filtros -->
-            <div class="filtros-bar">
-                <div class="filtro-item busca-item">
-                    <label>🔍 Busca</label>
-                    <input type="text" id="busca" placeholder="NIS, município, ID...">
-                </div>
-                <div class="filtro-item">
-                    <label>NI</label>
-                    <select id="filtroNI"></select>
-                </div>
-                <div class="filtro-item">
-                    <label>Online/Offline</label>
-                    <select id="filtroOnline">
-                        <option value="">Todos</option>
-                        <option value="ONLINE">✅ Online</option>
-                        <option value="OFFLINE">🔴 Offline</option>
-                        <option value="BRANCO">⬜ Sem status</option>
-                    </select>
-                </div>
-                <div class="filtro-item">
-                    <label>Situação</label>
-                    <select id="filtroStatus">
-                        <option value="">Todos</option>
-                        <option value="CONCLUIDO">✓ Concluídos</option>
-                        <option value="PENDENTE">⏳ Pendentes</option>
-                    </select>
-                </div>
-                <div class="filtro-item">
-                    <label>Equipe Civil</label>
-                    <select id="filtroEquipeCivil"></select>
-                </div>
-                <div class="filtro-item">
-                    <label>Equipe Elétrica</label>
-                    <select id="filtroEquipeEletro"></select>
-                </div>
-                <div class="filtro-item">
-                    <label>Energização</label>
-                    <select id="filtroEnergia">
-                        <option value="">Todas</option>
-                        <option value="SOLAR">SOLAR</option>
-                        <option value="CONVENCIONAL">CONVENCIONAL</option>
-                    </select>
-                </div>
-                <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
-            </div>
-
-            <!-- Tabela -->
-            <div class="tabela-wrapper">
-                <div class="tabela-header-bar">
-                    <h3>Registros</h3>
-                    <span class="tabela-count" id="tabelaCount">—</span>
-                </div>
-                <div class="tabela-scroll">
-                    <table id="tabelaCronograma">
-                        <thead>
-                            <tr>
-                                <th>NI</th>
-                                <th>Prazo</th>
-                                <th>ID Equip.</th>
-                                <th>Município</th>
-                                <th>Energia</th>
-                                <th>Status</th>
-                                <th>Eqp. Civil</th>
-                                <th>Eqp. Elétrica</th>
-                                <th>Furação</th>
-                                <th>Fixação</th>
-                                <th>Estrut.</th>
-                                <th>Travessia</th>
-                                <th>Sin. Aérea</th>
-                                <th>Sin. Terr.</th>
-                                <th>Montagem</th>
-                                <th title="N/A = não se aplica ao equipamento">Mont.Estr.</th>
-                                <th>Aferição</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">
+          <div class="card" style="--card-accent:#ef4444;--card-color:#ef4444;padding:12px 14px;">
+            <div class="card-icon" style="font-size:14px;">📶</div>
+            <div class="card-value" id="cobTIM" style="font-size:1.4rem;">—</div>
+            <div class="card-label" style="font-size:9px;">TIM com sinal</div>
+          </div>
+          <div class="card" style="--card-accent:#f97316;--card-color:#f97316;padding:12px 14px;">
+            <div class="card-icon" style="font-size:14px;">📶</div>
+            <div class="card-value" id="cobCLARO" style="font-size:1.4rem;">—</div>
+            <div class="card-label" style="font-size:9px;">CLARO com sinal</div>
+          </div>
+          <div class="card" style="--card-accent:#a855f7;--card-color:#a855f7;padding:12px 14px;">
+            <div class="card-icon" style="font-size:14px;">📶</div>
+            <div class="card-value" id="cobVIVO" style="font-size:1.4rem;">—</div>
+            <div class="card-label" style="font-size:9px;">VIVO com sinal</div>
+          </div>
+          <!-- Card Sem Sinal: linhas onde TIM + CLARO + VIVO = todos "sem cobertura" -->
+          <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;padding:12px 14px;">
+            <div class="card-icon" style="font-size:14px;">🚫</div>
+            <div class="card-value" id="cobSemSinal" style="font-size:1.4rem;">—</div>
+            <div class="card-label" style="font-size:9px;">Sem sinal (todas)</div>
+          </div>
+          <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;padding:12px 14px;">
+            <div class="card-icon" style="font-size:14px;">📍</div>
+            <div class="card-value" id="cobTotal" style="font-size:1.4rem;">—</div>
+            <div class="card-label" style="font-size:9px;">Total locais</div>
+          </div>
         </div>
-    </main>
+
+        <!-- Barras operadora -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="cobBarras"></div>
+
+        <!-- Filtros cobertura: botões dominante + select município -->
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:14px;">
+          <div id="filtrosCobWrap" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.35);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">🏙️ Município</label>
+            <select class="cob-select" id="cobFiltroMun" onchange="aplicarFiltroCob()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabela cobertura -->
+        <div class="tabela-wrapper" id="cobTabelaWrap" style="display:none;">
+          <div class="tabela-header-bar">
+            <h3 style="font-size:0.8rem;">Cobertura por Município</h3>
+            <span class="tabela-count" id="cobTabelaCount">—</span>
+          </div>
+          <div class="tabela-scroll" style="max-height:320px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Estudo Técnico</th>
+                  <th>Município</th>
+                  <th style="color:#ef4444;">TIM</th>
+                  <th style="color:#f97316;">CLARO</th>
+                  <th style="color:#a855f7;">VIVO</th>
+                  <th>Dominante</th>
+                </tr>
+              </thead>
+              <tbody id="cobTabelaBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
+  </main>
 </div>
 
+<!-- carregar_excel.js declara "let dados" globalmente — NÃO redeclarar aqui -->
 <script src="js/carregar_excel.js"></script>
-<script src="js/filtros.js"></script>
+
 <script>
-    carregarDados(inicializarPagina);
+/* ═══════════════════════════════════════════════════════════
+   PAINEL — lógica completa (sem filtros.js, sem redeclarar dados)
+═══════════════════════════════════════════════════════════ */
+
+var _modo3NI  = false;
+var _NIS_3A   = ['3ª NI (SEI 85884132)', '3ª NI (SEI 85890843)'];
+
+var _colSinAereaBase = null;
+var _colSinAereaIcam = null;
+var _colSinTerFiz    = null;
+var _colSinTerConc   = null;
+var _colPrazo        = null;
+
+var ETAPAS = {
+  'Furação':        'FURACAO_REALIZADO',
+  'Fixação':        'FIXACAO_POSTES_REALIZADO',
+  'Estruturas':     'ESTRUTURAS_REALIZADO',
+  'Travessia':      'TRAVESSIA_INTERLIGACAO_REALIZADO',
+  'Sin. Aérea':     '_SIN_AEREA',
+  'Sin. Terrestre': '_SIN_TERRESTRE',
+  'Montagem':       'MONTAGEM_REALIZADO',
+  'Mont. Estr.':    'MONTAGEM_ESTRUTURAL_REALIZADO',
+  'Aferição':       'AFERICAO_REALIZADO'
+};
+
+/* ── detecta coluna por lista de nomes possíveis ── */
+function _detectCol(chaves, buscas) {
+  for (var i = 0; i < buscas.length; i++) {
+    var b = buscas[i].toLowerCase().trim();
+    for (var j = 0; j < chaves.length; j++) {
+      if (chaves[j].toLowerCase().trim() === b) return chaves[j];
+    }
+  }
+  for (var i = 0; i < buscas.length; i++) {
+    var b = buscas[i].toLowerCase().trim();
+    for (var j = 0; j < chaves.length; j++) {
+      if (chaves[j].toLowerCase().indexOf(b) !== -1) return chaves[j];
+    }
+  }
+  return null;
+}
+
+function _detectarColunasSin(primeira) {
+  var ch = Object.keys(primeira);
+  _colSinAereaBase = _detectCol(ch, ['SINALIZACAO_AEREA_BASE_REALIZADO']);
+  _colSinAereaIcam = _detectCol(ch, ['SINALIZACAO_AEREA_ICAMENTO_REALIZADO']);
+  _colSinTerFiz    = _detectCol(ch, ['SINALIZACAO_TERRESTRE_FIZACAO_REALIZADO']);
+  _colSinTerConc   = _detectCol(ch, ['SINALIZACAO_TERRESTRE_CONCRETAGEM_REALIZADO','SINALIZACAO_TERRESTRE_CONCRETAGEM_REALIZAD']);
+  _colPrazo        = _detectCol(ch, ['Prazo_de_Instalacao','Prazo_Instalacao','prazo_instalacao','PRAZO_INSTALACAO']);
+}
+
+function _temValor(d, col) {
+  if (!col) return false;
+  var v = d[col];
+  return v !== undefined && v !== null && String(v).trim() !== '';
+}
+
+/* injeta colunas virtuais _SIN_AEREA e _SIN_TERRESTRE */
+function _injetarVirtuales(lista) {
+  if (lista.length > 0) _detectarColunasSin(lista[0]);
+  lista.forEach(function(d) {
+    d._SIN_AEREA     = _temValor(d, _colSinAereaBase) && _temValor(d, _colSinAereaIcam);
+    d._SIN_TERRESTRE = _temValor(d, _colSinTerFiz)    && _temValor(d, _colSinTerConc);
+  });
+}
+
+function _montEstrutNA(d) {
+  var v = d['MONTAGEM_ESTRUTURAL_REALIZADO'];
+  return !v || String(v).trim() === '';
+}
+
+function _isOnline(d) {
+  return String(d.ONLINE || '').toUpperCase().trim() === 'ONLINE';
+}
+
+function _etapaConcluida(d, col) {
+  if (col === '_SIN_AEREA')     return !!d._SIN_AEREA;
+  if (col === '_SIN_TERRESTRE') return !!d._SIN_TERRESTRE;
+  return !!(d[col] && String(d[col]).trim() !== '');
+}
+
+function _isConcluido(d) {
+  var cols = Object.values(ETAPAS);
+  for (var i = 0; i < cols.length; i++) {
+    var col = cols[i];
+    if (col === 'MONTAGEM_ESTRUTURAL_REALIZADO' && _montEstrutNA(d)) continue;
+    if (!_etapaConcluida(d, col)) return false;
+  }
+  return true;
+}
+
+/* ── chamada pelo carregar_excel.js após load ── */
+function inicializarPagina(dadosCarregados) {
+  /* "dados" já foi declarado com "let" no carregar_excel.js — só atribuímos */
+  dados = dadosCarregados;
+  _injetarVirtuales(dados);
+  _preencherSelects();
+  aplicarFiltros();
+}
+
+/* ═══════════════ TOGGLE 3ª NI ═══════════════ */
+function toggle3NI() {
+  _modo3NI = !_modo3NI;
+  var btn   = document.getElementById('btnToggle3NI');
+  var badge = document.getElementById('badge54');
+  if (_modo3NI) {
+    btn.textContent = '✕ Desativar filtro 3ª NI';
+    btn.classList.add('ativo');
+    badge.classList.add('visivel');
+    document.getElementById('filtroNI').value = '';
+  } else {
+    btn.textContent = '⚡ Ativar filtro 3ª NI';
+    btn.classList.remove('ativo');
+    badge.classList.remove('visivel');
+  }
+  aplicarFiltros();
+}
+
+/* ═══════════════ SELECTS ═══════════════ */
+function _preencherSelects() {
+  _fillSelect('filtroNI',          'nis');
+  _fillSelect('filtroMunicipio',   'municipio');
+  _fillSelect('filtroEquipeCivil', 'Equipe_civil');
+  _fillSelect('filtroEquipeEletro','Equipe_eletronica');
+
+  ['filtroNI','filtroMunicipio','filtroEquipeCivil','filtroEquipeEletro',
+   'filtroEnergia','filtroStatus','filtroOnline'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', function() {
+      if (id === 'filtroNI' && _modo3NI) {
+        _modo3NI = false;
+        document.getElementById('btnToggle3NI').textContent = '⚡ Ativar filtro 3ª NI';
+        document.getElementById('btnToggle3NI').classList.remove('ativo');
+        document.getElementById('badge54').classList.remove('visivel');
+      }
+      aplicarFiltros();
+    });
+  });
+
+  document.getElementById('busca').addEventListener('input', aplicarFiltros);
+}
+
+function _fillSelect(id, campo) {
+  var sel = document.getElementById(id);
+  if (!sel) return;
+  var vals = [];
+  dados.forEach(function(d) {
+    var v = String(d[campo] || '').trim();
+    if (v && vals.indexOf(v) === -1) vals.push(v);
+  });
+  vals.sort();
+  sel.innerHTML = '<option value="">Todos</option>';
+  vals.forEach(function(v) {
+    var o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    sel.appendChild(o);
+  });
+}
+
+function limparFiltros() {
+  ['filtroNI','filtroMunicipio','filtroEquipeCivil','filtroEquipeEletro',
+   'filtroEnergia','filtroStatus','filtroOnline'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('busca').value = '';
+  if (_modo3NI) {
+    _modo3NI = false;
+    document.getElementById('btnToggle3NI').textContent = '⚡ Ativar filtro 3ª NI';
+    document.getElementById('btnToggle3NI').classList.remove('ativo');
+    document.getElementById('badge54').classList.remove('visivel');
+  }
+  aplicarFiltros();
+}
+
+/* ═══════════════ FILTRO PRINCIPAL ═══════════════ */
+function aplicarFiltros() {
+  var ni     = document.getElementById('filtroNI').value;
+  var mun    = document.getElementById('filtroMunicipio').value;
+  var civil  = document.getElementById('filtroEquipeCivil').value;
+  var eletro = document.getElementById('filtroEquipeEletro').value;
+  var energ  = document.getElementById('filtroEnergia').value;
+  var status = document.getElementById('filtroStatus').value;
+  var online = document.getElementById('filtroOnline').value;
+  var busca  = document.getElementById('busca').value.toLowerCase().trim();
+
+  var filtrado = dados.filter(function(d) {
+    /* NI — toggle 3NI tem prioridade */
+    if (_modo3NI) {
+      if (!_NIS_3A.some(function(n){ return String(d.nis||'').trim() === n; })) return false;
+    } else {
+      if (ni && String(d.nis||'').trim() !== ni) return false;
+    }
+    if (mun    && String(d.municipio||'').trim() !== mun)   return false;
+    if (civil  && String(d.Equipe_civil||'').trim() !== civil) return false;
+    if (eletro && String(d.Equipe_eletronica||'').trim() !== eletro) return false;
+    if (energ  && String(d.ENERGIZACAO||'').toUpperCase().trim() !== energ) return false;
+    if (status === 'CONCLUIDO' && !_isConcluido(d)) return false;
+    if (status === 'PENDENTE'  &&  _isConcluido(d)) return false;
+    if (online) {
+      var ov = String(d.ONLINE||'').toUpperCase().trim();
+      if (online === 'ONLINE'  && ov !== 'ONLINE') return false;
+      if (online === 'OFFLINE' && (ov === 'ONLINE' || ov === '')) return false;
+      if (online === 'BRANCO'  && ov !== '') return false;
+    }
+    if (busca) {
+      var txt = [d.nis, d.ID_Equip, d.municipio, d.rodovia].join(' ').toLowerCase();
+      if (txt.indexOf(busca) === -1) return false;
+    }
+    return true;
+  });
+
+  _renderTabela(filtrado);
+  _atualizarDashboard(filtrado);
+}
+
+/* ═══════════════ DASHBOARD ═══════════════ */
+function _atualizarDashboard(lista) {
+  var total      = lista.length;
+  var online     = lista.filter(_isOnline).length;
+  var solar      = lista.filter(function(d){ return String(d.ENERGIZACAO||'').toUpperCase().trim()==='SOLAR'; }).length;
+  var conv       = lista.filter(function(d){ return String(d.ENERGIZACAO||'').toUpperCase().trim()==='CONVENCIONAL'; }).length;
+  var concluidos = lista.filter(_isConcluido).length;
+
+  function sc(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+  sc('cardTotal',        total);
+  sc('cardOnline',       online);
+  sc('cardSolar',        solar);
+  sc('cardConvencional', conv);
+  sc('cardPendentes',    total - concluidos);
+  sc('cardConcluidos',   concluidos);
+  sc('tabelaCount',      total + ' registros');
+
+  Object.entries(ETAPAS).forEach(function(entry) {
+    var col  = entry[1];
+    var base = total;
+    if (col === 'MONTAGEM_ESTRUTURAL_REALIZADO')
+      base = lista.filter(function(d){ return !_montEstrutNA(d); }).length;
+    var ok  = lista.filter(function(d){ return _etapaConcluida(d, col); }).length;
+    var pct = base > 0 ? Math.round(ok / base * 100) : 0;
+    var key = col.replace(/[^a-zA-Z0-9]/g, '_');
+    var fe  = document.getElementById('bar_' + key);
+    var pe  = document.getElementById('pct_' + key);
+    if (fe) fe.style.width = pct + '%';
+    if (pe) pe.textContent = pct + '%';
+  });
+}
+
+/* ═══════════════ TABELA PRINCIPAL ═══════════════ */
+function _renderTabela(lista) {
+  var tbody = document.querySelector('#tabelaCronograma tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (lista.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--text-muted);">Nenhum resultado encontrado.</td></tr>';
+    return;
+  }
+
+  lista.forEach(function(d) {
+    var concluido = _isConcluido(d);
+    var rowStyle  = concluido ? 'background:rgba(0,208,132,0.04);' : '';
+    var prazo     = d._prazo || '';
+    var etapasHtml = '';
+
+    Object.keys(ETAPAS).forEach(function(nome) {
+      var col = ETAPAS[nome];
+      if (col === 'MONTAGEM_ESTRUTURAL_REALIZADO' && _montEstrutNA(d)) {
+        etapasHtml += '<td style="text-align:center;"><span style="font-size:10px;color:rgba(232,237,245,0.2);">N/A</span></td>';
+        return;
+      }
+      var ok = _etapaConcluida(d, col);
+      etapasHtml += '<td style="text-align:center;"><span class="' + (ok?'etapa-ok':'etapa-no') + '">' + (ok?'✓':'—') + '</span></td>';
+    });
+
+    tbody.innerHTML +=
+      '<tr style="' + rowStyle + '">' +
+      '<td><strong>' + (d.nis||'—') + '</strong></td>' +
+      '<td style="font-size:10px;color:rgba(232,237,245,0.45);">' + (prazo||'—') + '</td>' +
+      '<td>' + (d.ID_Equip||'—') + '</td>' +
+      '<td>' + (d.municipio||'—') + '</td>' +
+      '<td>' + (d.ENERGIZACAO||'—') + '</td>' +
+      '<td><span class="badge ' + (_isOnline(d)?'badge-online':'badge-offline') + '">' + (d.ONLINE||'—') + '</span></td>' +
+      '<td>' + (d.Equipe_civil||'—') + '</td>' +
+      '<td>' + (d.Equipe_eletronica||'—') + '</td>' +
+      etapasHtml +
+      '</tr>';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COBERTURA DE SINAL
+═══════════════════════════════════════════════════════════ */
+(function() {
+  /* _linhas = array de objetos por equipamento (uma linha do Excel) */
+  var _linhas    = [];
+  var _filtroCob = '';   /* filtro dominante por linha */
+
+  /* ── helpers ── */
+  function normCob(v) {
+    if (!v || String(v).trim() === '') return 'N/D';
+    var u = String(v).trim().toUpperCase();
+    if (u.indexOf('SEM COBERTURA') !== -1) return 'Sem Cobertura';
+    if (u.indexOf('5G') !== -1) return '5G/4G/3G';
+    if (u.indexOf('4G') !== -1 && u.indexOf('3G') !== -1) return '4G e 3G';
+    if (u.indexOf('4G') !== -1) return '4G';
+    if (u.indexOf('3G') !== -1) return '3G';
+    if (u.indexOf('2G') !== -1) return '2G';
+    return 'N/D';
+  }
+
+  function temSinal(v) { return v !== 'Sem Cobertura' && v !== 'N/D'; }
+
+  /* dominante por linha individual */
+  function getDomLinha(l) {
+    var t = temSinal(l.tN), c = temSinal(l.cN), v = temSinal(l.vN);
+    if (!t && !c && !v) return 'SEM SINAL';
+    var cnt = (t?1:0) + (c?1:0) + (v?1:0);
+    if (t && c && v) return 'EMPATE';
+    /* maioria simples: quem tem, ganha — em caso de dois iguais = empate */
+    if (t && c && !v) return 'EMPATE';
+    if (t && !c && v) return 'EMPATE';
+    if (!t && c && v) return 'EMPATE';
+    if (t) return 'TIM';
+    if (c) return 'CLARO';
+    return 'VIVO';
+  }
+
+  function hexToRgb(hex) {
+    var r = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '255,255,255';
+  }
+
+  function barHtml(val, total, cor, label) {
+    var pct = total > 0 ? Math.round(val/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<span style="font-size:10px;color:rgba(232,237,245,0.5);width:52px;letter-spacing:0.5px;text-transform:uppercase;">' + label + '</span>' +
+      '<div style="flex:1;height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;">' +
+      '<div style="height:100%;width:'+pct+'%;background:'+cor+';border-radius:3px;transition:width 0.6s;"></div></div>' +
+      '<span style="font-size:11px;font-weight:600;color:'+cor+';min-width:42px;text-align:right;">'+pct+'% ' +
+      '<span style="font-size:9px;color:rgba(232,237,245,0.3);">('+val+')</span></span></div>';
+  }
+
+  function domBadge(dom) {
+    var s = {
+      'TIM':       'background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.4)',
+      'CLARO':     'background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.4)',
+      'VIVO':      'background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.4)',
+      'EMPATE':    'background:rgba(0,208,132,0.12);color:#00d084;border:1px solid rgba(0,208,132,0.3)',
+      'SEM SINAL': 'background:rgba(255,71,87,0.1);color:#ff4757;border:1px solid rgba(255,71,87,0.3)'
+    }[dom] || 'background:rgba(255,255,255,0.05);color:rgba(232,237,245,0.3);border:1px solid rgba(255,255,255,0.1)';
+    return '<span style="'+s+';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">'+dom+'</span>';
+  }
+
+  function sinalBadge(val) {
+    if (val === 'Sem Cobertura' || val === 'N/D') {
+      return '<span style="color:#ff4757;font-size:10px;font-weight:600;">SEM SINAL</span>';
+    }
+    return '<span style="color:#00d084;font-size:10px;">'+val+'</span>';
+  }
+
+  /* ── Botões dominante ── */
+  var OPCOES = [
+    {f:'',          label:'Todos',     cor:'rgba(232,237,245,0.7)'},
+    {f:'TIM',       label:'TIM',       cor:'#ef4444'},
+    {f:'CLARO',     label:'CLARO',     cor:'#f97316'},
+    {f:'VIVO',      label:'VIVO',      cor:'#a855f7'},
+    {f:'EMPATE',    label:'Empate',    cor:'#00d084'},
+    {f:'SEM SINAL', label:'Sem sinal', cor:'#ff4757'}
+  ];
+
+  function injetarBotoes() {
+    var wrap = document.getElementById('filtrosCobWrap');
+    if (!wrap || wrap.children.length > 0) return;
+    OPCOES.forEach(function(op) {
+      var btn = document.createElement('button');
+      btn.className   = 'btn-cob';
+      btn.textContent = op.label;
+      btn.dataset.f   = op.f;
+      btn.dataset.cor = op.cor;
+      btn.addEventListener('click', function() {
+        _filtroCob = op.f;
+        syncBotoes();
+        aplicarFiltroCob();
+      });
+      wrap.appendChild(btn);
+    });
+    syncBotoes();
+  }
+
+  function syncBotoes() {
+    document.querySelectorAll('#filtrosCobWrap .btn-cob').forEach(function(btn) {
+      var cor   = btn.dataset.cor;
+      var ativo = btn.dataset.f === _filtroCob;
+      if (ativo) {
+        if (btn.dataset.f === '') {
+          btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba(255,255,255,0.1);border:1px solid rgba(232,237,245,0.5);color:rgba(232,237,245,0.9);letter-spacing:0.4px;';
+        } else {
+          btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba('+hexToRgb(cor)+',0.12);border:1.5px solid '+cor+';color:'+cor+';letter-spacing:0.4px;';
+        }
+      } else {
+        btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:rgba(232,237,245,0.5);letter-spacing:0.4px;';
+      }
+    });
+  }
+
+  /* ── Select município ── preenche com nomes únicos e não-vazios ── */
+  function preencherSelectMun() {
+    var sel = document.getElementById('cobFiltroMun');
+    if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">Todos</option>';
+    /* coleta municípios únicos das linhas */
+    var vistos = [];
+    _linhas.forEach(function(l) {
+      if (l.mun && l.mun !== '—' && vistos.indexOf(l.mun) === -1) {
+        vistos.push(l.mun);
+      }
+    });
+    vistos.sort();
+    vistos.forEach(function(m) {
+      var o = document.createElement('option');
+      o.value       = m;
+      o.textContent = m;
+      sel.appendChild(o);
+    });
+    sel.value = (cur && vistos.indexOf(cur) !== -1) ? cur : '';
+  }
+
+  /* ── Filtro + render ── */
+  function aplicarFiltroCob() {
+    var munSel = (document.getElementById('cobFiltroMun')||{}).value || '';
+    var filtrados = _linhas.filter(function(l) {
+      if (_filtroCob && getDomLinha(l) !== _filtroCob) return false;
+      if (munSel && l.mun !== munSel) return false;
+      return true;
+    });
+    renderTabelaCob(filtrados);
+  }
+
+  window.aplicarFiltroCob = aplicarFiltroCob;
+
+  /* ── Tabela: uma linha por equipamento ── */
+  function renderTabelaCob(filtrados) {
+    var tbody = document.getElementById('cobTabelaBody');
+    var wrap  = document.getElementById('cobTabelaWrap');
+    var count = document.getElementById('cobTabelaCount');
+    if (!tbody) return;
+    wrap.style.display = filtrados.length > 0 ? 'block' : 'none';
+    if (count) count.textContent = filtrados.length + ' equipamentos';
+    tbody.innerHTML = '';
+
+    filtrados.forEach(function(l) {
+      var dom = getDomLinha(l);
+      tbody.innerHTML +=
+        '<tr>' +
+        '<td style="font-size:11px;font-family:monospace;color:rgba(232,237,245,0.7);letter-spacing:0.3px;white-space:nowrap;">' + (l.estudo||'—') + '</td>' +
+        '<td style="font-weight:600;white-space:nowrap;">' + (l.mun||'—') + '</td>' +
+        '<td>' + sinalBadge(l.tN) + '</td>' +
+        '<td>' + sinalBadge(l.cN) + '</td>' +
+        '<td>' + sinalBadge(l.vN) + '</td>' +
+        '<td>' + domBadge(dom) + '</td>' +
+        '</tr>';
+    });
+  }
+
+  /* ── Processa Excel ── */
+  function renderCobertura(dadosBrutos) {
+    var total   = dadosBrutos.length;
+    var timCom  = 0, claroCom = 0, vivoCom = 0, semTodos = 0;
+
+    var ch0    = total > 0 ? Object.keys(dadosBrutos[0]) : [];
+    var cTIM0  = ch0.find(function(k){ return k.trim().toUpperCase()==='TIM'; });
+    var cCLAR0 = ch0.find(function(k){ return k.trim().toUpperCase()==='CLARO'; });
+    var cVIVO0 = ch0.find(function(k){ return k.trim().toUpperCase()==='VIVO'; });
+    var cMun0  = ch0.find(function(k){ var u=k.trim().toUpperCase(); return u==='MUNICIPIO'||u==='MUNICÍPIO'; });
+    var cEst0  = ch0.find(function(k){ var u=k.trim().toUpperCase(); return u==='ESTUDO_TECNICO'||u==='ESTUDO TECNICO'||u==='ESTUDO_TÉCNICO'||u==='ESTUDO TÉCNICO'||u.indexOf('ESTUDO')!==-1; });
+
+    _linhas = [];
+
+    dadosBrutos.forEach(function(d) {
+      var mun    = cMun0  ? String(d[cMun0]  ||'').trim() : '—';
+      var estudo = cEst0  ? String(d[cEst0]  ||'').trim() : '—';
+      var tN     = normCob(cTIM0  ? d[cTIM0]  : '');
+      var cN     = normCob(cCLAR0 ? d[cCLAR0] : '');
+      var vN     = normCob(cVIVO0 ? d[cVIVO0] : '');
+
+      if (temSinal(tN)) timCom++;
+      if (temSinal(cN)) claroCom++;
+      if (temSinal(vN)) vivoCom++;
+      if (!temSinal(tN) && !temSinal(cN) && !temSinal(vN)) semTodos++;
+
+      _linhas.push({estudo:estudo, mun:mun, tN:tN, cN:cN, vN:vN});
+    });
+
+    function sc(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+    sc('cobTotal',    total);
+    sc('cobTIM',      timCom);
+    sc('cobCLARO',    claroCom);
+    sc('cobVIVO',     vivoCom);
+    sc('cobSemSinal', semTodos);
+
+    var barras = document.getElementById('cobBarras');
+    if (barras) {
+      barras.innerHTML =
+        barHtml(timCom,   total, '#ef4444', 'TIM') +
+        barHtml(claroCom, total, '#f97316', 'CLARO') +
+        barHtml(vivoCom,  total, '#a855f7', 'VIVO') +
+        barHtml(semTodos, total, '#ff4757', 'Sem sinal');
+    }
+
+    preencherSelectMun();
+    injetarBotoes();
+    aplicarFiltroCob();
+
+    var st = document.getElementById('coberturaStatus');
+    if (st) st.textContent = total + ' locais carregados de basecadastro_NIs.xlsx';
+  }
+
+  fetch('data/basecadastro_NIs.xlsx')
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
+    .then(function(buf){
+      var wb    = XLSX.read(buf,{type:'array'});
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      renderCobertura(XLSX.utils.sheet_to_json(sheet,{defval:''}));
+    })
+    .catch(function(err){
+      var st = document.getElementById('coberturaStatus');
+      if(st) st.innerHTML = '\u26a0\ufe0f N\u00e3o foi poss\u00edvel carregar <code>data/basecadastro_NIs.xlsx</code> \u2014 verifique se o arquivo existe na pasta <code>data/</code>';
+      console.warn('Erro cobertura:', err);
+    });
+
+})();
+
+/* ── chama o carregamento do Excel principal ── */
+carregarDados(inicializarPagina);
 </script>
+
 </body>
 </html>
