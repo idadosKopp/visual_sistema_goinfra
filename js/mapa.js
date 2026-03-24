@@ -10,6 +10,20 @@ var CORES_NI = ['#4d9fff','#00d084','#ffd32a','#ff6b35','#9b5de5','#ff4757','#00
 var mapaDeNIs = {};
 var paradasManuais = [];
 
+// ── Etapas por equipe ──
+var ETAPAS_CIVIL = [
+    'FURACAO_REALIZADO',
+    'FIXACAO_POSTES_REALIZADO',
+    'ESTRUTURAS_REALIZADO',
+    'TRAVESSIA_INTERLIGACAO_REALIZADO',
+];
+
+var ETAPAS_ELETRICA = [
+    'MONTAGEM_REALIZADO',
+    'MONTAGEM_ESTRUTURAL_REALIZADO',
+    'AFERICAO_REALIZADO'
+];
+
 function distanciaKm(lat1,lon1,lat2,lon2){
     var R=6371,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
     var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
@@ -56,9 +70,9 @@ function inicializarMapa(dadosCarregados){
     renderizarLegendaNI();
 
     mapaInstance=L.map('mapa',{zoomControl:true}).setView([-15.5,-50],7);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-        attribution:'&copy; OpenStreetMap &copy; CartoDB',maxZoom:19
-    }).addTo(mapaInstance);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CartoDB', maxZoom: 19
+}).addTo(mapaInstance);
 
     atualizarMapa();
     renderizarTabelasLaterais(todosOsDados);
@@ -172,11 +186,11 @@ function popupHtml(d,pendente,ordem){
     return '<div style="font-family:Inter,sans-serif;min-width:175px;line-height:1.8;">'+
         '<div style="font-weight:700;font-size:13px;margin-bottom:4px;">'+ordemTag+niTag+'</div>'+
         '<div style="margin-bottom:4px;">'+enTag+'</div>'+
-        '<div style="font-size:11px;color:rgba(232,237,245,0.7);">📍 '+(d.municipio||'—')+' — '+(d.rodovia||'—')+'</div>'+
-        '<div style="font-size:11px;color:rgba(232,237,245,0.7);">🔧 '+(d.ID_Equip||'—')+'</div>'+
+        '<div style="font-size:11px;color:rgba(109, 113, 119, 0.7);">📍 '+(d.municipio||'—')+' — '+(d.rodovia||'—')+'</div>'+
+        '<div style="font-size:11px;color:rgba(119, 121, 124, 0.7);">🔧 '+(d.ID_Equip||'—')+'</div>'+
         '<div style="font-size:11px;margin-top:4px;">Status: <span style="color:'+(pendente?'#ff4757':'#00d084')+';font-weight:600;">'+(pendente?'⏳ Pendente':'✅ Online')+'</span></div>'+
-        '<div style="font-size:11px;color:rgba(232,237,245,0.5);">🏗️ '+(d.Equipe_civil||'—')+'</div>'+
-        '<div style="font-size:11px;color:rgba(232,237,245,0.5);">⚙️ '+(d.Equipe_eletronica||'—')+'</div>'+
+        '<div style="font-size:11px;color:rgba(117, 120, 126, 0.5);">🏗️ '+(d.Equipe_civil||'—')+'</div>'+
+        '<div style="font-size:11px;color:rgba(72, 74, 77, 0.5);">⚙️ '+(d.Equipe_eletronica||'—')+'</div>'+
         '</div>';
 }
 
@@ -219,7 +233,7 @@ function renderizarChips(){
     if(!el) return;
 
     if(paradasManuais.length===0){
-        el.innerHTML='<span style="font-size:10px;color:rgba(232,237,245,0.2);">Nenhuma parada</span>';
+        el.innerHTML='<span style="font-size:10px;color:rgba(46, 47, 49, 0.2);">Nenhuma parada</span>';
         if(distEl) distEl.textContent='';
         return;
     }
@@ -228,7 +242,6 @@ function renderizarChips(){
     paradasManuais.forEach(function(p,i){
         if(i>0) total+=distanciaKm(paradasManuais[i-1].lat,paradasManuais[i-1].lon,p.lat,p.lon);
         var cor=CORES_NI[i%CORES_NI.length];
-        // Mostra só o município (antes do parênteses)
         var nome=p.label.split(' (')[0];
         html+='<div class="parada-chip">'+
             '<span class="chip-num" style="background:'+cor+';">'+(i+1)+'</span>'+
@@ -265,51 +278,104 @@ function limparRotaManual(){
     renderizarChips();
 }
 
+// ── Calcula etapas de um equipamento para um conjunto de colunas ──
+function calcularEtapas(d, colunas){
+    var tot=0, ok=0;
+    colunas.forEach(function(col){
+        // _SIN_AEREA e _SIN_TERRESTRE — booleanos injetados
+        if(col === '_SIN_AEREA' || col === '_SIN_TERRESTRE'){
+            tot++;
+            if(d[col]) ok++;
+            return;
+        }
+        // MONTAGEM_ESTRUTURAL — só entra no total se tiver valor (não é N/A)
+        if(col === 'MONTAGEM_ESTRUTURAL_REALIZADO'){
+            var v = String(d[col] || '').trim();
+            if(v === '' || v.toUpperCase() === 'N/A') return; // pula — não conta
+            tot++;
+            ok++; // tem valor = concluída
+            return;
+        }
+        // Demais colunas — sempre contam
+        tot++;
+        var val = String(d[col] || '').trim();
+        if(val !== '') ok++;
+    });
+    return {tot:tot, ok:ok};
+}
+
+// ── Preenche uma tabela de equipe ──
+function preencherTabelaEquipe(tbId, colunas, lista){
+    var tb = document.querySelector('#'+tbId+' tbody');
+    if(!tb) return;
+    tb.innerHTML = '';
+    lista.forEach(function(d){
+        var id        = d.ID_Equip  || '—';
+        var municipio = d.municipio || '—';
+        var r         = calcularEtapas(d, colunas);
+        var pct       = r.tot > 0 ? Math.round(r.ok / r.tot * 100) : 0;
+        var classe    = pct >= 75 ? 'ok' : pct >= 30 ? 'med' : 'low';
+        var etapasStr = r.tot > 0 ? (r.ok+'/'+r.tot) : '—';
+        tb.innerHTML +=
+            '<tr>'+
+            '<td>'+id+'</td>'+
+            '<td style="font-weight:600;white-space:normal;word-break:break-word;line-height:1.3;padding:5px 4px;">'+municipio+'</td>'+
+            '<td style="text-align:center;color:rgba(52, 53, 56, 0.55);">'+etapasStr+'</td>'+
+            '<td><span class="badge-pct '+classe+'">'+pct+'%</span></td>'+
+            '</tr>';
+    });
+}
+
 // ── TABELAS LATERAIS ──
 function renderizarTabelasLaterais(lista){
-    // Por NI
-    var nis={};
-    lista.forEach(function(d){
-        var n=d.nis||'—';
-        if(!nis[n]) nis[n]={total:0,online:0};
-        nis[n].total++; if(isOnline(d)) nis[n].online++;
-    });
-    var tbNI=document.querySelector('#tabelaNI tbody');
-    if(tbNI){
-        tbNI.innerHTML='';
-        Object.keys(nis).sort().forEach(function(n){
-            var v=nis[n],cor=corNI(n),pend=v.total-v.online;
-            var pct=Math.round((v.online/v.total)*100);
-            var pcor=pct===100?'#00d084':pct>=50?'#ffd32a':'#ff4757';
-            tbNI.innerHTML+='<tr>'+
-                '<td><span style="color:'+cor+';font-weight:600;">'+n+'</span></td>'+
-                '<td style="text-align:center;">'+v.total+'</td>'+
-                '<td style="color:#00d084;text-align:center;">'+v.online+'</td>'+
-                '<td style="color:#ff4757;text-align:center;">'+pend+'</td>'+
-                '<td style="color:'+pcor+';text-align:center;">'+pct+'%</td>'+
-                '</tr>';
-        });
-    }
 
-    // Por Município
-    var cidades={};
-    lista.forEach(function(d){
-        var key=(d.rodovia||'—')+'||'+(d.municipio||'—');
-        if(!cidades[key]) cidades[key]={rod:d.rodovia||'—',mun:d.municipio||'—',total:0,online:0};
-        cidades[key].total++; if(isOnline(d)) cidades[key].online++;
+ // ── Por NI — baseado em etapas concluídas (civil + elétrica) ──
+var TODAS_ETAPAS = ETAPAS_CIVIL.concat(ETAPAS_ELETRICA);
+
+function equipConcluido(d) {
+    return TODAS_ETAPAS.every(function(col) {
+        // MONTAGEM_ESTRUTURAL — ignora se vazio (N/A)
+        if (col === 'MONTAGEM_ESTRUTURAL_REALIZADO') {
+            var v = String(d[col] || '').trim();
+            return v === '' || v !== '';  // sempre passa se N/A
+        }
+        if (col === '_SIN_AEREA')     return !!d._SIN_AEREA;
+        if (col === '_SIN_TERRESTRE') return !!d._SIN_TERRESTRE;
+        return !!(d[col] && String(d[col]).trim() !== '');
     });
-    var tbCid=document.querySelector('#tabelaCidades tbody');
-    if(tbCid){
-        tbCid.innerHTML='';
-        Object.values(cidades).sort(function(a,b){return b.total-a.total;}).forEach(function(c){
-            var pct=c.total>0?Math.round((c.online/c.total)*100):0;
-            var cor=pct===100?'#00d084':pct>=50?'#ffd32a':'#ff4757';
-            tbCid.innerHTML+='<tr>'+
-                '<td style="font-size:9px;color:rgba(232,237,245,0.5);">'+c.rod+'</td>'+
-                '<td style="text-align:center;font-weight:500;white-space:normal;word-break:break-word;line-height:1.3;padding:5px 4px;">'+c.mun+'</td>'+
-                '<td style="text-align:center;font-weight:600;">'+c.total+'</td>'+
-                '<td style="color:'+cor+';text-align:center;font-weight:600;">'+pct+'%</td>'+
-                '</tr>';
-        });
-    }
+}
+
+var nis = {};
+lista.forEach(function(d) {
+    var n = d.nis || '—';
+    if (!nis[n]) nis[n] = { total: 0, ok: 0 };
+    nis[n].total++;
+    if (equipConcluido(d)) nis[n].ok++;
+});
+
+var tbNI = document.querySelector('#tabelaNI tbody');
+if (tbNI) {
+    tbNI.innerHTML = '';
+    Object.keys(nis).sort().forEach(function(n) {
+        var v   = nis[n];
+        var cor = corNI(n);
+        var pend = v.total - v.ok;
+        var pct  = Math.round((v.ok / v.total) * 100);
+        var pcor = pct === 100 ? '#1E8B5A' : pct >= 50 ? '#B45309' : '#C62828';
+        tbNI.innerHTML +=
+            '<tr>' +
+            '<td><span style="color:'+cor+';font-weight:700;">'+n+'</span></td>' +
+            '<td style="text-align:center;font-weight:600;">'+v.total+'</td>' +
+            '<td style="color:#1E8B5A;text-align:center;font-weight:700;">'+v.ok+'</td>' +
+            '<td style="color:#C62828;text-align:center;font-weight:700;">'+pend+'</td>' +
+            '<td style="color:'+pcor+';text-align:center;font-weight:700;">'+pct+'%</td>' +
+            '</tr>';
+    });
+}
+
+    // ── Card Civil — etapas da equipe civil ──
+    preencherTabelaEquipe('tabelaCivil',    ETAPAS_CIVIL,    lista);
+
+    // ── Card Elétrica — etapas da equipe elétrica ──
+    preencherTabelaEquipe('tabelaEletrica', ETAPAS_ELETRICA, lista);
 }
