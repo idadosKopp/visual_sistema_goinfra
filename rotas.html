@@ -8,134 +8,213 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="js/auth.js"></script>
     <style>
-        /* ── Filtros ── */
-        .filtros-rotas { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px; }
-        .filtro-rota { display:flex; flex-direction:column; gap:4px; flex:1; min-width:130px; }
-        .filtro-rota label { font-size:9px; font-weight:600; color:rgba(232,237,245,0.3); letter-spacing:1.2px; text-transform:uppercase; }
-        .filtro-rota select { width:100%; padding:6px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#e8edf5; font-size:11px; outline:none; cursor:pointer; font-family:'Inter',sans-serif; }
-        .filtro-rota select:focus { border-color:rgba(0,120,255,0.5); }
-        .filtro-rota select option { background:#141c2e; }
-        .btn-limpar-f { padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer; border:1px solid rgba(255,71,87,0.3); background:rgba(255,71,87,0.08); color:#ff4757; align-self:flex-end; height:30px; transition:all 0.15s; }
-        .btn-limpar-f:hover { background:rgba(255,71,87,0.2); }
 
-        /* ── Barra superior: próxima NIS + rota manual ── */
-        .rotas-topbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: stretch;
+        /* ── Filtros topo ── */
+        .filtros-rotas {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            align-items: flex-end; margin-bottom: 12px;
+            background: #fff; border: 1px solid #D1D9E6;
+            border-radius: 12px; padding: 14px 16px;
+            box-shadow: 0 1px 4px rgba(21,101,192,0.08);
         }
-
-        /* Próxima NIS — compacto horizontal */
-        .nis-top {
-            background: linear-gradient(135deg, rgba(0,120,255,0.12), rgba(0,85,204,0.08));
-            border: 1px solid rgba(0,120,255,0.25);
-            border-radius: 8px;
-            padding: 10px 14px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-shrink: 0;
-            min-width: 340px;
+        .filtro-rota { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 130px; }
+        .filtro-rota label {
+            font-size: 10px; font-weight: 700; color: #5A6478;
+            letter-spacing: 0.8px; text-transform: uppercase;
         }
-        .nis-top .nis-label { font-size:9px; color:var(--blue); letter-spacing:2px; text-transform:uppercase; font-weight:600; margin-bottom:2px; }
-        .nis-top .nis-val { font-family:'Rajdhani',sans-serif; font-size:1.3rem; font-weight:700; color:#fff; line-height:1; }
-        .nis-top .nis-sub { font-size:10px; color:rgba(232,237,245,0.5); margin-top:1px; }
-        .nis-top .nis-stats { display:flex; gap:14px; font-size:10px; color:rgba(232,237,245,0.5); }
-        .nis-top .nis-stats strong { color:#fff; font-size:12px; display:block; }
+        .filtro-rota select {
+            width: 100%; padding: 7px 10px;
+            background: #F5F7FA; border: 1px solid #D1D9E6;
+            border-radius: 8px; color: #1A2035;
+            font-size: 12px; font-family: 'DM Sans', sans-serif;
+            outline: none; cursor: pointer;
+        }
+        .filtro-rota select:focus { border-color: #1565C0; }
+        .filtro-rota select option { background: #fff; color: #1A2035; }
+        .btn-limpar-f {
+            padding: 7px 14px; border-radius: 8px; font-size: 11px;
+            font-weight: 700; cursor: pointer; border: 1px solid #E8B4B4;
+            background: #FEF0F0; color: #C62828; height: 34px;
+            align-self: flex-end; font-family: 'DM Sans', sans-serif;
+            transition: all 0.15s;
+        }
+        .btn-limpar-f:hover { background: #FDECEA; border-color: #C62828; }
 
-        /* Rota manual — horizontal compacto */
+        /* ── Barra topo ── */
+        .rotas-topbar { display: flex; gap: 12px; margin-bottom: 12px; align-items: stretch; }
+
+
         .rota-manual-bar {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
+            flex: 1; background: #fff;
+            border: 1px solid #D1D9E6; border-radius: 12px;
+            padding: 12px 16px; display: flex; gap: 8px; align-items: center;
+            box-shadow: 0 1px 4px rgba(21,101,192,0.08);
         }
-        .rota-manual-bar .rm-label { font-size:9px; font-weight:600; color:rgba(232,237,245,0.3); letter-spacing:1.5px; text-transform:uppercase; white-space:nowrap; }
-        .rota-manual-bar select { flex:1; padding:5px 8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:5px; color:#e8edf5; font-size:11px; outline:none; min-width:0; }
-        .rota-manual-bar select option { background:#141c2e; }
-        .btn-rm { padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; border:1px solid; white-space:nowrap; transition:all 0.15s; }
-        .btn-rm-add  { background:rgba(0,120,255,0.15); border-color:rgba(0,120,255,0.3); color:#0078ff; }
-        .btn-rm-add:hover { background:rgba(0,120,255,0.3); }
-        .btn-rm-show { background:linear-gradient(135deg,#0055cc,#0078ff); border-color:transparent; color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:1px; }
-        .btn-rm-clear { background:transparent; border-color:rgba(255,71,87,0.2); color:rgba(255,71,87,0.6); }
-        .btn-rm-clear:hover { border-color:#ff4757; color:#ff4757; }
-        .paradas-chips { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
-        .parada-chip { display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:2px 8px 2px 6px; font-size:10px; color:var(--text-secondary); }
-        .parada-chip .chip-num { width:14px; height:14px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:#fff; flex-shrink:0; }
-        .parada-chip .chip-x { background:none; border:none; color:rgba(255,71,87,0.5); cursor:pointer; font-size:11px; padding:0; line-height:1; margin-left:1px; }
-        .parada-chip .chip-x:hover { color:#ff4757; }
-        .rm-dist { font-size:10px; color:rgba(232,237,245,0.3); white-space:nowrap; }
+        .rota-manual-bar .rm-label {
+            font-size: 10px; font-weight: 700; color: #5A6478;
+            letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+        }
+        .rota-manual-bar select {
+            flex: 1; padding: 6px 10px; background: #F5F7FA;
+            border: 1px solid #D1D9E6; border-radius: 8px;
+            color: #1A2035; font-size: 11px; font-family: 'DM Sans', sans-serif;
+            outline: none; min-width: 0;
+        }
+        .rota-manual-bar select option { background: #fff; color: #1A2035; }
+        .btn-rm {
+            padding: 6px 12px; border-radius: 8px; font-size: 11px;
+            cursor: pointer; border: 1px solid; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif; font-weight: 600; transition: all 0.15s;
+        }
+        .btn-rm-add  { background: #E3F0FF; border-color: rgba(21,101,192,0.3); color: #1565C0; }
+        .btn-rm-add:hover { background: #C7DFFF; }
+        .btn-rm-show { background: #1565C0; border-color: transparent; color: #fff; font-weight: 700; }
+        .btn-rm-show:hover { background: #0D47A1; }
+        .btn-rm-clear { background: #FEF0F0; border-color: #E8B4B4; color: #C62828; }
+        .btn-rm-clear:hover { background: #FDECEA; border-color: #C62828; }
 
-        /* ── Layout principal: mapa + painel direito ── */
-        .rotas-main {
-            display: flex;
-            gap: 12px;
-            height: calc(100vh - 210px);
-            min-height: 380px;
+        .paradas-chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+        .parada-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #E3F0FF; border: 1px solid rgba(21,101,192,0.2);
+            border-radius: 20px; padding: 3px 8px 3px 5px;
+            font-size: 10px; color: #1565C0; font-weight: 600;
         }
+        .parada-chip .chip-num {
+            width: 15px; height: 15px; border-radius: 50%;
+            background: #1565C0; color: #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 8px; font-weight: 700; flex-shrink: 0;
+        }
+        .parada-chip .chip-x {
+            background: none; border: none; color: #C62828;
+            cursor: pointer; font-size: 12px; padding: 0; line-height: 1;
+        }
+        .rm-dist { font-size: 10px; color: #5A6478; white-space: nowrap; font-family: 'DM Mono', monospace; }
+
+        /* ── Layout principal ── */
+        .rotas-main { display: flex; gap: 14px; height: calc(100vh - 225px); min-height: 420px; }
 
         /* Mapa */
         .rotas-map-area {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
+            flex: 1; background: #fff; border: 1px solid #D1D9E6;
+            border-radius: 12px; overflow: hidden; position: relative;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.08);
         }
-        #mapa { width:100%; height:100%; }
+        #mapa { width: 100%; height: 100%; }
 
-        /* Painel esquerdo */
+        /* Painel lateral */
         .rotas-panel {
-            width: 290px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-            scrollbar-width: thin;
+            width: 295px; flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 10px;
+            overflow-y: auto; scrollbar-width: thin; padding-right: 2px;
         }
 
-        /* Cards mini do painel */
+        /* ── Cards painel ── */
         .panel-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 12px;
+            background: #fff; border: 1px solid #D1D9E6;
+            border-radius: 12px; padding: 12px 14px;
+            box-shadow: 0 1px 4px rgba(21,101,192,0.06);
         }
         .panel-card h4 {
-            font-family:'Rajdhani',sans-serif; font-size:0.72rem; font-weight:600;
-            color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase;
-            margin-bottom:8px;
+            font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 10px;
+            padding-bottom: 8px; border-bottom: 2px solid #E8ECF4;
+            display: flex; align-items: center; gap: 6px;
         }
-        .panel-card table { width:100%; border-collapse:collapse; }
-        .panel-card table thead th { font-size:8px; color:var(--text-muted); padding:4px 5px; text-align:left; border-bottom:1px solid var(--border); letter-spacing:0.8px; text-transform:uppercase; }
-        .panel-card table tbody td { font-size:10px; color:var(--text-primary); padding:4px 5px; border-bottom:1px solid rgba(255,255,255,0.03); }
-        .panel-card table tbody tr:last-child td { border-bottom:none; }
-        .panel-card table tbody tr:hover { background:rgba(255,255,255,0.03); }
+        .panel-card.card-ni    h4 { color: #1565C0; border-color: #BFDBFE; }
+        .panel-card.card-civil h4 { color: #1E8B5A; border-color: #A7F3D0; }
+        .panel-card.card-el    h4 { color: #B8860B; border-color: #FDE68A; }
+        .panel-card.card-leg   h4 { color: #5A6478; border-color: #E8ECF4; }
 
-        /* Scroll limitado nas tabelas */
-        .tbl-scroll tbody { display:block; max-height:260px; overflow-y:auto; scrollbar-width:thin; }
-        .tbl-scroll thead, .tbl-scroll tbody tr { display:table; width:100%; table-layout:fixed; }
+        /* Fundo suave por tipo */
+        .panel-card.card-ni    { border-left: 4px solid #1565C0; }
+        .panel-card.card-civil { border-left: 4px solid #1E8B5A; }
+        .panel-card.card-el    { border-left: 4px solid #B8860B; }
 
-        /* Município: quebra linha e centraliza */
-        #tabelaCidades td { white-space:normal !important; word-break:break-word; vertical-align:middle; }
-        #tabelaCidades td:nth-child(2) { text-align:center; }
-        #tabelaNI td, #tabelaNI th { text-align:center; }
-        #tabelaNI td:first-child, #tabelaNI th:first-child { text-align:left; }
+        /* ── Tabelas ── */
+        .panel-card table { width: 100%; border-collapse: collapse; }
+        .panel-card table thead th {
+            font-size: 9px; font-weight: 700; color: #8892A4;
+            padding: 5px 7px; text-align: left;
+            background: #F5F7FA; border-bottom: 1px solid #E8ECF4;
+            letter-spacing: 0.8px; text-transform: uppercase;
+        }
+        .panel-card table tbody td {
+            font-size: 11px; color: #1A2035;
+            padding: 6px 7px; border-bottom: 1px solid #F0F3F8;
+            vertical-align: middle;
+        }
+        .panel-card table tbody tr:last-child td { border-bottom: none; }
+        .panel-card table tbody tr:hover { background: #F5F7FA; }
 
-        /* Legenda */
-        .legenda-item { display:flex; align-items:center; gap:7px; font-size:10px; color:var(--text-secondary); margin-bottom:5px; }
-        .leg-dot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
-        .leg-line { width:16px; height:2px; flex-shrink:0; border-radius:2px; }
+        .tbl-scroll tbody { display: block; max-height: 195px; overflow-y: auto; scrollbar-width: thin; }
+        .tbl-scroll thead, .tbl-scroll tbody tr { display: table; width: 100%; table-layout: fixed; }
 
-        /* Cores NI */
-        .ni-cor { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+        /* Tabela Por NI */
+        #tabelaNI td, #tabelaNI th { text-align: center; }
+        #tabelaNI td:first-child, #tabelaNI th:first-child { text-align: left; }
+        #tabelaNI td:first-child {
+            font-weight: 800; color: #1565C0; font-size: 11px;
+        }
+        #tabelaNI td:nth-child(3) { color: #1E8B5A; font-weight: 700; }
+        #tabelaNI td:nth-child(4) { color: #C62828; font-weight: 700; }
+
+        /* Tabelas civil/elétrica */
+        #tabelaCivil thead th:nth-child(1),
+        #tabelaEletrica thead th:nth-child(1) { width: 70px; }
+        #tabelaCivil thead th:nth-child(3),
+        #tabelaEletrica thead th:nth-child(3) { width: 46px; text-align: center; }
+        #tabelaCivil thead th:nth-child(4),
+        #tabelaEletrica thead th:nth-child(4) { width: 38px; text-align: center; }
+
+        /* ID Equip */
+        #tabelaCivil td:nth-child(1),
+        #tabelaEletrica td:nth-child(1) {
+            font-size: 9px; font-family: 'DM Mono', monospace;
+            color: #1565C0; font-weight: 600; letter-spacing: 0.3px;
+        }
+        /* Município */
+        #tabelaCivil td:nth-child(2),
+        #tabelaEletrica td:nth-child(2) {
+            font-weight: 700; font-size: 11px; color: #1A2035;
+        }
+        /* Etapas */
+        #tabelaCivil td:nth-child(3),
+        #tabelaEletrica td:nth-child(3) {
+            text-align: center; font-size: 10px; color: #5A6478;
+            font-family: 'DM Mono', monospace;
+        }
+        /* % */
+        #tabelaCivil td:nth-child(4),
+        #tabelaEletrica td:nth-child(4) { text-align: center; }
+
+        /* Badge % */
+        .badge-pct {
+            display: inline-block; padding: 2px 7px; border-radius: 12px;
+            font-size: 9px; font-weight: 800; min-width: 36px; text-align: center;
+        }
+        .badge-pct.ok  { background: #d1ebfa; color: #065F46; }
+        .badge-pct.med { background: #FEF3C7; color: #92400E; }
+        .badge-pct.low { background: #FEE2E2; color: #991B1B; }
+
+        /* ── Legenda ── */
+        .legenda-item {
+            display: flex; align-items: center; gap: 9px;
+            font-size: 11px; color: #3D4A5C; font-weight: 500;
+            padding: 5px 0; border-bottom: 1px solid #F0F3F8;
+        }
+        .legenda-item:last-child { border-bottom: none; }
+        .leg-dot {
+            width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .leg-line { width: 20px; height: 3px; flex-shrink: 0; border-radius: 2px; }
+        .leg-dash { width: 20px; flex-shrink: 0; border-top: 3px dashed; }
+        .ni-cor { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+
+        /* Legenda NI */
+        #legendaNI .legenda-item { font-size: 11px; color: #3D4A5C; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -145,13 +224,14 @@
 <div class="app-shell">
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <div class="brand"><span>🛣️</span> GOINFRA</div>
-            <div class="sub">Monitoramento</div>
+            <div class="brand">🛣️ GOINFRA</div>
+            <div class="sub">Monitoramento KOPP</div>
         </div>
         <nav>
             <a href="index.html"><span class="nav-icon">📊</span> Painel</a>
             <a href="rotas.html" class="active"><span class="nav-icon">🗺️</span> Rotas</a>
             <a href="sinalizacao.html"><span class="nav-icon">🚧</span> Sinalização</a>
+            <a href="equipes.html"><span class="nav-icon">👷</span> Equipes</a>
             <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
         </nav>
         <div class="sidebar-footer"><a class="sair" onclick="sair()">⏻ Sair</a></div>
@@ -161,13 +241,13 @@
         <div class="page-header">
             <div>
                 <h1>🗺️ Planejamento de Rotas</h1>
-                <p>Próxima NIS · Rota por cor de NI · Planejador manual</p>
+                <p>Mapa interativo · Progresso por NI · Planejador de rota manual</p>
             </div>
         </div>
 
-        <div class="page-body" style="padding-top:10px;">
+        <div class="page-body" style="padding-top:14px;">
 
-            <!-- LINHA 1: FILTROS -->
+            <!-- FILTROS -->
             <div class="filtros-rotas">
                 <div class="filtro-rota">
                     <label>NI</label>
@@ -192,76 +272,101 @@
                 <button class="btn-limpar-f" onclick="limparFiltrosMapa()">✕ Limpar</button>
             </div>
 
-            <!-- LINHA 2: PRÓXIMA NIS + ROTA MANUAL -->
+            <!-- PRÓXIMA NIS + ROTA MANUAL -->
             <div class="rotas-topbar">
-
-                <!-- Próxima NIS compacta -->
-                <div class="nis-top">
-                    <div>
-                        <div class="nis-label">⭐ Próxima NIS</div>
-                        <div class="nis-val" id="nisNumero">—</div>
-                        <div class="nis-sub" id="nisMunicipio">—</div>
-                        <div class="nis-sub" id="nisEquip" style="color:rgba(232,237,245,0.3);">—</div>
-                    </div>
-                    <div class="nis-stats">
-                        <div><strong id="nisPendentes">—</strong>pendentes</div>
-                        <div><strong id="nisDistTotal">—</strong>rota total</div>
-                        <div><span id="nisDistProx" style="font-size:9px;"></span></div>
-                    </div>
                 </div>
 
-                <!-- Rota manual horizontal -->
                 <div class="rota-manual-bar">
                     <span class="rm-label">📍 Rota manual</span>
                     <select id="selectParada"></select>
                     <button class="btn-rm btn-rm-add" onclick="adicionarParada()">+ Add</button>
                     <div class="paradas-chips" id="paradasChips">
-                        <span style="font-size:10px;color:rgba(232,237,245,0.2);">Nenhuma parada</span>
+                        <span style="font-size:10px;color:#8892A4;">Nenhuma parada</span>
                     </div>
                     <span class="rm-dist" id="rotaTotalKm"></span>
-                    <button class="btn-rm btn-rm-show" onclick="calcularRotaManual()">🗺️ Mostrar</button>
-                    <button class="btn-rm btn-rm-clear" onclick="limparRotaManual()">✕</button>
+                    <button class="btn-rm btn-rm-show" onclick="calcularRotaManual()">🗺️ Mostrar rota</button>
+                    <button class="btn-rm btn-rm-clear" onclick="limparRotaManual()">✕ Limpar</button>
                 </div>
             </div>
 
-            <!-- LINHA 3: MAPA + PAINEL DIREITO -->
+            <!-- MAPA + PAINEL -->
             <div class="rotas-main">
 
                 <!-- PAINEL ESQUERDO -->
                 <div class="rotas-panel">
 
                     <!-- Por NI -->
-                    <div class="panel-card">
-                        <h4>📋 Por NI</h4>
+                    <div class="panel-card card-ni">
+                        <h4>📋 Progresso por NI</h4>
                         <table id="tabelaNI" class="tbl-scroll">
-                            <thead><tr><th>NI</th><th>Total</th><th style="color:#00d084;">✓</th><th style="color:#ff4757;">✗</th><th>%</th></tr></thead>
+                            <thead><tr>
+                                <th>NI</th>
+                                <th style="text-align:center;">Total</th>
+                                <th style="text-align:center;color:#1E8B5A;">✓ Ok</th>
+                                <th style="text-align:center;color:#C62828;">✗ Pend.</th>
+                                <th style="text-align:center;">%</th>
+                            </tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
 
-                    <!-- Por Município -->
-                    <div class="panel-card">
-                        <h4>🏙️ Por Município</h4>
-                        <table id="tabelaCidades" class="tbl-scroll">
-                            <thead><tr><th style="width:60px">Rodovia</th><th>Município</th><th style="width:28px">Qtd</th><th style="width:28px" title="% Online">%</th></tr></thead>
+                    <!-- Equipe Civil -->
+                    <div class="panel-card card-civil">
+                        <h4>🏗️ Equipe Civil</h4>
+                        <table id="tabelaCivil" class="tbl-scroll">
+                            <thead><tr>
+                                <th>ID Equip.</th>
+                                <th>Município</th>
+                                <th style="text-align:center;" title="Etapas civis concluídas / total">Civil</th>
+                                <th style="text-align:center;">%</th>
+                            </tr></thead>
                             <tbody></tbody>
                         </table>
                     </div>
 
-                    <!-- Legenda NI -->
-                    <div class="panel-card">
-                        <h4>🎨 NI</h4>
+                    <!-- Equipe Elétrica -->
+                    <div class="panel-card card-el">
+                        <h4>⚡ Equipe Elétrica</h4>
+                        <table id="tabelaEletrica" class="tbl-scroll">
+                            <thead><tr>
+                                <th>ID Equip.</th>
+                                <th>Município</th>
+                                <th style="text-align:center;" title="Etapas elétricas concluídas / total">Elét.</th>
+                                <th style="text-align:center;">%</th>
+                            </tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Cores NI -->
+                    <div class="panel-card card-ni">
+                        <h4>🎨 Cores por NI</h4>
                         <div id="legendaNI"></div>
                     </div>
 
-                    <!-- Legenda status -->
-                    <div class="panel-card">
-                        <h4>🔑 Status</h4>
-                        <div class="legenda-item"><div class="leg-dot" style="background:#ffd32a;box-shadow:0 0 6px #ffd32a55;"></div>Próxima NIS</div>
-                        <div class="legenda-item"><div class="leg-dot" style="border:2px solid #ff4757;background:transparent;"></div>Pendente</div>
-                        <div class="legenda-item"><div class="leg-dot" style="background:#00d084;"></div>Online ✅</div>
-                        <div class="legenda-item"><div class="leg-line" style="background:#0078ff;"></div>Rota auto</div>
-                        <div class="legenda-item"><div class="leg-line" style="background:#ff6b35;border-top:2px dashed #ff6b35;height:0;"></div>Rota manual</div>
+                    <!-- Legenda mapa -->
+                    <div class="panel-card card-leg">
+                        <h4>🔑 Legenda do Mapa</h4>
+                        <div class="legenda-item">
+                            <div class="leg-dot" style="background:#D4A017;box-shadow:0 0 6px rgba(212,160,23,0.5);"></div>
+                            <span>Próxima NIS a instalar</span>
+                        </div>
+                        <div class="legenda-item">
+                            <div class="leg-dot" style="border:2.5px solid #C62828;background:#FEE2E2;"></div>
+                            <span>Equipamento pendente</span>
+                        </div>
+                        <div class="legenda-item">
+                            <div class="leg-dot" style="background:#1E8B5A;"></div>
+                            <span>Equipamento online ✅</span>
+                        </div>
+                        <div class="legenda-item">
+                            <div class="leg-line" style="background:#1565C0;"></div>
+                            <span>Rota automática (por NI)</span>
+                        </div>
+                        <div class="legenda-item">
+                            <div class="leg-dash" style="border-color:#B45309;"></div>
+                            <span>Rota manual planejada</span>
+                        </div>
                     </div>
 
                 </div>
@@ -272,7 +377,6 @@
                 </div>
 
             </div>
-
         </div>
     </main>
 </div>

@@ -8,99 +8,54 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="js/auth.js"></script>
   <style>
-    .toggle-3ni-bar {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px;
-      padding: 10px 16px;
-      background: rgba(255,200,0,0.06);
-      border: 1px solid rgba(255,200,0,0.18);
-      border-radius: 10px;
-      flex-wrap: wrap;
+    /* ── Card SISGO ── */
+    .card-sisgo {
+      position: relative; overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(21,101,192,0.25);
+      background: linear-gradient(135deg, var(--kopp-blue-pale), #fff);
+      padding: 16px; display: flex; flex-direction: column; gap: 4px;
+      box-shadow: var(--shadow-sm); transition: box-shadow 0.2s;
     }
-    .toggle-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: rgba(232,237,245,0.85);
-      letter-spacing: 0.4px;
-      flex: 1;
-      min-width: 160px;
+    .card-sisgo::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--kopp-blue), #42A5F5);
+      border-radius: 3px 3px 0 0;
     }
-    .toggle-label .toggle-sub {
-      display: block;
-      font-size: 10px;
-      font-weight: 400;
-      color: rgba(232,237,245,0.4);
-      margin-top: 2px;
+    .card-sisgo:hover { box-shadow: var(--shadow-md); }
+    .card-sisgo .sisgo-label {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--kopp-blue); display: flex; align-items: center; gap: 5px;
     }
-    .btn-toggle-3ni {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 5px 18px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.18s;
-      border: 1.5px solid rgba(255,200,0,0.35);
-      background: rgba(255,255,255,0.04);
-      color: rgba(232,237,245,0.5);
-      letter-spacing: 0.5px;
+    .card-sisgo .sisgo-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: pulse-sisgo 2s infinite;
     }
-    .btn-toggle-3ni.ativo {
-      background: rgba(255,200,0,0.14);
-      border-color: #ffd32a;
-      color: #ffd32a;
+    @keyframes pulse-sisgo { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+    .card-sisgo .sisgo-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 2rem; font-weight: 500;
+      color: var(--kopp-blue); line-height: 1;
     }
-    .badge-54 {
-      display: none;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 10px;
-      border-radius: 20px;
-      background: rgba(255,211,42,0.13);
-      color: #ffd32a;
-      border: 1px solid rgba(255,211,42,0.35);
-      margin-left: 8px;
+    .card-sisgo .sisgo-value.loading {
+      font-size: 1rem; color: var(--text-muted);
+      animation: blink 1.2s infinite;
     }
-    .badge-54.visivel { display: inline-block; }
-    .btn-cob {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 14px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.15s;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(232,237,245,0.5);
-      letter-spacing: 0.4px;
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .card-sisgo .sisgo-icon {
+      position: absolute; right: 14px; top: 14px; font-size: 22px; opacity: 0.3;
     }
-       .btn-cob:hover { background: rgba(255,255,255,0.08); }
-    .cob-select {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      background: #141c2e;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(232,237,245,0.8);
-      min-width: 150px;
-      outline: none;
-      cursor: pointer;
-      -webkit-appearance: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(232%2C237%2C245%2C0.4)'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      padding-right: 24px;
+    .card-sisgo .sisgo-ops {
+      font-size: 9px; color: var(--kopp-blue);
+      margin-top: 4px; border-top: 1px solid var(--border);
+      padding-top: 6px; display: flex; gap: 12px;
     }
-    .cob-select:focus {
-      border-color: rgba(0,120,255,0.5);
-      background-color: #141c2e;
-    }
-    .cob-select option {
-      background: #141c2e;
-      color: #e8edf5;
-    }
+    .card-sisgo .sisgo-ops span { color: var(--text-secondary); font-weight: 600; }
+    .card-sisgo .sisgo-erro { font-size: 10px; color: var(--red); margin-top: 4px; }
+
+    /* ── Linha verde nas linhas concluídas ── */
+    .row-concluido { background: var(--green-bg) !important; }
   </style>
 </head>
 <body>
@@ -114,12 +69,13 @@
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="brand"><span>🛣️</span> GOINFRA</div>
-      <div class="sub">Monitoramento</div>
+      <div class="sub">Monitoramento KOPP</div>
     </div>
     <nav>
       <a href="index.html" class="active"><span class="nav-icon">📊</span> Painel</a>
       <a href="rotas.html"><span class="nav-icon">🗺️</span> Rotas</a>
       <a href="sinalizacao.html"><span class="nav-icon">🚧</span> Sinalização</a>
+      <a href="equipes.html"><span class="nav-icon">👷</span> Equipes</a>
       <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
     </nav>
     <div class="sidebar-footer">
@@ -137,47 +93,53 @@
 
     <div class="page-body">
 
-      <!-- Toggle 3ª NI -->
-      <div class="toggle-3ni-bar">
-        <div class="toggle-label">
-          🔎 Modo 3ª NI
-          <span class="toggle-sub">Filtra apenas "3ª NI (SEI 85884132)" e "3ª NI (SEI 85890843)" — cards e barras calculam sobre os 54 equipamentos</span>
-          <span class="badge-54" id="badge54">54 equip.</span>
-        </div>
-        <button class="btn-toggle-3ni" id="btnToggle3NI" onclick="toggle3NI()">⚡ Ativar filtro 3ª NI</button>
-      </div>
-
-      <!-- Cards -->
+      <!-- Cards KPI -->
       <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
-        <div class="card" style="--card-accent:#0078ff;--card-color:#0078ff;">
+        <div class="card" style="--card-accent:#1565C0;--card-color:#1565C0;">
           <div class="card-icon">📦</div>
           <div class="card-value" id="cardTotal">—</div>
           <div class="card-label">Total de Faixas</div>
         </div>
-        <div class="card" style="--card-accent:#ffd32a;--card-color:#ffd32a;">
+        <div class="card" style="--card-accent:#B8860B;--card-color:#B8860B;">
           <div class="card-icon">☀️</div>
           <div class="card-value" id="cardSolar">—</div>
           <div class="card-label">Energia Solar</div>
         </div>
-        <div class="card" style="--card-accent:#d336d8;--card-color:#d336d8;">
+        <div class="card" style="--card-accent:#7B1FA2;--card-color:#7B1FA2;">
           <div class="card-icon">🔌</div>
           <div class="card-value" id="cardConvencional">—</div>
           <div class="card-label">Energia Convencional</div>
         </div>
-        <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;">
+        <div class="card" style="--card-accent:#C62828;--card-color:#C62828;">
           <div class="card-icon">⏳</div>
           <div class="card-value" id="cardPendentes">—</div>
           <div class="card-label">Pendentes</div>
         </div>
-        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
+        <div class="card" style="--card-accent:#B45309;--card-color:#B45309;">
+          <div class="card-icon">🏁</div>
+          <div class="card-value" id="cardConcluidos">—</div>
+          <div class="card-label">Etapas Concluídas</div>
+        </div>
+        <div class="card" style="--card-accent:#1E8B5A;--card-color:#1E8B5A;">
           <div class="card-icon">✅</div>
           <div class="card-value" id="cardOnline">—</div>
           <div class="card-label">Status Online</div>
         </div>
-        <div class="card" style="--card-accent:#00d084;--card-color:#00d084;">
-          <div class="card-icon">🏁</div>
-          <div class="card-value" id="cardConcluidos">—</div>
-          <div class="card-label">Etapas Concluídas</div>
+        <!-- Card SISGO -->
+        <div class="card-sisgo" id="cardSisgoWrap">
+          <div class="sisgo-icon">🏛️</div>
+          <div class="sisgo-label">
+            <span class="sisgo-dot"></span>
+            SISGO · Ao vivo
+          </div>
+          <div class="sisgo-value loading" id="cardSisgoValor">Carregando...</div>
+          <div class="card-label" style="font-size:10px;margin-top:2px;">
+            Faixas entregues (SISGO)
+          </div>
+          <div class="sisgo-ops" id="cardSisgoOps" style="display:none;">
+            <div>KOPP-2025001 <span id="sisgoOp1">—</span> fx</div>
+            <div>KOPP-2025005 <span id="sisgoOp5">—</span> fx</div>
+          </div>
         </div>
       </div>
 
@@ -235,11 +197,11 @@
           <select id="filtroNI"></select>
         </div>
         <div class="filtro-item">
-          <label>🏙️ Município</label>
+          <label>Município</label>
           <select id="filtroMunicipio"></select>
         </div>
         <div class="filtro-item">
-          <label>Online/Offline</label>
+          <label>Online / Offline</label>
           <select id="filtroOnline">
             <option value="">Todos</option>
             <option value="ONLINE">✅ Online</option>
@@ -267,8 +229,8 @@
           <label>Energização</label>
           <select id="filtroEnergia">
             <option value="">Todas</option>
-            <option value="SOLAR">SOLAR</option>
-            <option value="CONVENCIONAL">CONVENCIONAL</option>
+            <option value="SOLAR">☀️ Solar</option>
+            <option value="CONVENCIONAL">⚡ Convencional</option>
           </select>
         </div>
         <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
@@ -296,101 +258,18 @@
         </div>
       </div>
 
-      <!-- Cobertura de Sinal -->
-      <div class="progresso-section" style="margin-top:24px;" id="secaoCobertura">
-        <h3>📡 Cobertura de Sinal por Operadora</h3>
-        <div id="coberturaStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">
-          Carregando <code style="background:rgba(255,255,255,0.07);padding:1px 6px;border-radius:4px;">data/basecadastro_NIs.xlsx</code>...
-        </div>
-
-        <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;">
-          <div class="card" style="--card-accent:#1165e4;--card-color:#1165e4;padding:12px 14px;">
-            <div class="card-icon" style="font-size:14px;">📶</div>
-            <div class="card-value" id="cobTIM" style="font-size:1.4rem;">—</div>
-            <div class="card-label" style="font-size:9px;">TIM com sinal</div>
-          </div>
-          <div class="card" style="--card-accent:#ee2409;--card-color:#ee2409;padding:12px 14px;">
-            <div class="card-icon" style="font-size:14px;">📶</div>
-            <div class="card-value" id="cobCLARO" style="font-size:1.4rem;">—</div>
-            <div class="card-label" style="font-size:9px;">CLARO com sinal</div>
-          </div>
-          <div class="card" style="--card-accent:#a855f7;--card-color:#a855f7;padding:12px 14px;">
-            <div class="card-icon" style="font-size:14px;">📶</div>
-            <div class="card-value" id="cobVIVO" style="font-size:1.4rem;">—</div>
-            <div class="card-label" style="font-size:9px;">VIVO com sinal</div>
-          </div>
-          <!-- Card Sem Sinal: linhas onde TIM + CLARO + VIVO = todos "sem cobertura" -->
-          <div class="card" style="--card-accent:#ff4757;--card-color:#ff4757;padding:12px 14px;">
-            <div class="card-icon" style="font-size:14px;">🚫</div>
-            <div class="card-value" id="cobSemSinal" style="font-size:1.4rem;">—</div>
-            <div class="card-label" style="font-size:9px;">Sem sinal (todas)</div>
-          </div>
-          <div class="card" style="--card-accent:#099921;--card-color:#099921;padding:12px 14px;">
-            <div class="card-icon" style="font-size:14px;">📍</div>
-            <div class="card-value" id="cobTotal" style="font-size:1.4rem;">—</div>
-            <div class="card-label" style="font-size:9px;">Total locais</div>
-          </div>
-        </div>
-
-        <!-- Barras operadora -->
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="cobBarras"></div>
-
-        <!-- Filtros cobertura: botões dominante + select município -->
-        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:14px;">
-          <div id="filtrosCobWrap" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <label style="font-size:10px;font-weight:600;color:rgba(220, 220, 236, 0.35);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;">🏙️ Município</label>
-            <select class="cob-select" id="cobFiltroMun" onchange="aplicarFiltroCob()">
-              <option value="">Todos</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Tabela cobertura -->
-        <div class="tabela-wrapper" id="cobTabelaWrap" style="display:none;">
-          <div class="tabela-header-bar">
-            <h3 style="font-size:0.8rem;">Cobertura por Município</h3>
-            <span class="tabela-count" id="cobTabelaCount">—</span>
-          </div>
-          <div class="tabela-scroll" style="max-height:320px;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Estudo Técnico</th>
-                  <th>Município</th>
-                  <th style="color:#1165e4;">TIM</th>
-                  <th style="color:#ee2409;">CLARO</th>
-                  <th style="color:#a855f7;">VIVO</th>
-                  <th>Dominante</th>
-                </tr>
-              </thead>
-              <tbody id="cobTabelaBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
     </div><!-- /page-body -->
   </main>
 </div>
 
-<!-- carregar_excel.js declara "let dados" globalmente — NÃO redeclarar aqui -->
 <script src="js/carregar_excel.js"></script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   PAINEL — lógica completa (sem filtros.js, sem redeclarar dados)
+   PAINEL — lógica principal
 ═══════════════════════════════════════════════════════════ */
-
-var _modo3NI  = false;
-var _NIS_3A   = ['3ª NI (SEI 85884132)', '3ª NI (SEI 85890843)'];
-
-var _colSinAereaBase = null;
-var _colSinAereaIcam = null;
-var _colSinTerFiz    = null;
-var _colSinTerConc   = null;
-var _colPrazo        = null;
+var _colSinAereaBase = null, _colSinAereaIcam = null;
+var _colSinTerFiz = null, _colSinTerConc = null, _colPrazo = null;
 
 var ETAPAS = {
   'Furação':        'FURACAO_REALIZADO',
@@ -404,7 +283,6 @@ var ETAPAS = {
   'Aferição':       'AFERICAO_REALIZADO'
 };
 
-/* ── detecta coluna por lista de nomes possíveis ── */
 function _detectCol(chaves, buscas) {
   for (var i = 0; i < buscas.length; i++) {
     var b = buscas[i].toLowerCase().trim();
@@ -427,7 +305,7 @@ function _detectarColunasSin(primeira) {
   _colSinAereaIcam = _detectCol(ch, ['SINALIZACAO_AEREA_ICAMENTO_REALIZADO']);
   _colSinTerFiz    = _detectCol(ch, ['SINALIZACAO_TERRESTRE_FIZACAO_REALIZADO']);
   _colSinTerConc   = _detectCol(ch, ['SINALIZACAO_TERRESTRE_CONCRETAGEM_REALIZADO','SINALIZACAO_TERRESTRE_CONCRETAGEM_REALIZAD']);
-  _colPrazo        = _detectCol(ch, ['Prazo_de_Instalacao','Prazo_Instalacao','prazo_instalacao','PRAZO_INSTALACAO']);
+  _colPrazo        = _detectCol(ch, ['Prazo_Instalacao','Prazo_de_Instalacao','prazo_instalacao','PRAZO_INSTALACAO']);
 }
 
 function _temValor(d, col) {
@@ -436,7 +314,6 @@ function _temValor(d, col) {
   return v !== undefined && v !== null && String(v).trim() !== '';
 }
 
-/* injeta colunas virtuais _SIN_AEREA e _SIN_TERRESTRE */
 function _injetarVirtuales(lista) {
   if (lista.length > 0) _detectarColunasSin(lista[0]);
   lista.forEach(function(d) {
@@ -470,55 +347,23 @@ function _isConcluido(d) {
   return true;
 }
 
-/* ── chamada pelo carregar_excel.js após load ── */
 function inicializarPagina(dadosCarregados) {
-  /* "dados" já foi declarado com "let" no carregar_excel.js — só atribuímos */
   dados = dadosCarregados;
   _injetarVirtuales(dados);
   _preencherSelects();
   aplicarFiltros();
 }
 
-/* ═══════════════ TOGGLE 3ª NI ═══════════════ */
-function toggle3NI() {
-  _modo3NI = !_modo3NI;
-  var btn   = document.getElementById('btnToggle3NI');
-  var badge = document.getElementById('badge54');
-  if (_modo3NI) {
-    btn.textContent = '✕ Desativar filtro 3ª NI';
-    btn.classList.add('ativo');
-    badge.classList.add('visivel');
-    document.getElementById('filtroNI').value = '';
-  } else {
-    btn.textContent = '⚡ Ativar filtro 3ª NI';
-    btn.classList.remove('ativo');
-    badge.classList.remove('visivel');
-  }
-  aplicarFiltros();
-}
-
-/* ═══════════════ SELECTS ═══════════════ */
 function _preencherSelects() {
   _fillSelect('filtroNI',          'nis');
   _fillSelect('filtroMunicipio',   'municipio');
   _fillSelect('filtroEquipeCivil', 'Equipe_civil');
   _fillSelect('filtroEquipeEletro','Equipe_eletronica');
-
   ['filtroNI','filtroMunicipio','filtroEquipeCivil','filtroEquipeEletro',
    'filtroEnergia','filtroStatus','filtroOnline'].forEach(function(id) {
     var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', function() {
-      if (id === 'filtroNI' && _modo3NI) {
-        _modo3NI = false;
-        document.getElementById('btnToggle3NI').textContent = '⚡ Ativar filtro 3ª NI';
-        document.getElementById('btnToggle3NI').classList.remove('ativo');
-        document.getElementById('badge54').classList.remove('visivel');
-      }
-      aplicarFiltros();
-    });
+    if (el) el.addEventListener('change', aplicarFiltros);
   });
-
   document.getElementById('busca').addEventListener('input', aplicarFiltros);
 }
 
@@ -546,16 +391,9 @@ function limparFiltros() {
     if (el) el.value = '';
   });
   document.getElementById('busca').value = '';
-  if (_modo3NI) {
-    _modo3NI = false;
-    document.getElementById('btnToggle3NI').textContent = '⚡ Ativar filtro 3ª NI';
-    document.getElementById('btnToggle3NI').classList.remove('ativo');
-    document.getElementById('badge54').classList.remove('visivel');
-  }
   aplicarFiltros();
 }
 
-/* ═══════════════ FILTRO PRINCIPAL ═══════════════ */
 function aplicarFiltros() {
   var ni     = document.getElementById('filtroNI').value;
   var mun    = document.getElementById('filtroMunicipio').value;
@@ -567,23 +405,18 @@ function aplicarFiltros() {
   var busca  = document.getElementById('busca').value.toLowerCase().trim();
 
   var filtrado = dados.filter(function(d) {
-    /* NI — toggle 3NI tem prioridade */
-    if (_modo3NI) {
-      if (!_NIS_3A.some(function(n){ return String(d.nis||'').trim() === n; })) return false;
-    } else {
-      if (ni && String(d.nis||'').trim() !== ni) return false;
-    }
-    if (mun    && String(d.municipio||'').trim() !== mun)   return false;
-    if (civil  && String(d.Equipe_civil||'').trim() !== civil) return false;
-    if (eletro && String(d.Equipe_eletronica||'').trim() !== eletro) return false;
+    if (ni     && String(d.nis||'').trim() !== ni)                          return false;
+    if (mun    && String(d.municipio||'').trim() !== mun)                   return false;
+    if (civil  && String(d.Equipe_civil||'').trim() !== civil)              return false;
+    if (eletro && String(d.Equipe_eletronica||'').trim() !== eletro)        return false;
     if (energ  && String(d.ENERGIZACAO||'').toUpperCase().trim() !== energ) return false;
-    if (status === 'CONCLUIDO' && !_isConcluido(d)) return false;
-    if (status === 'PENDENTE'  &&  _isConcluido(d)) return false;
+    if (status === 'CONCLUIDO' && !_isConcluido(d))                         return false;
+    if (status === 'PENDENTE'  &&  _isConcluido(d))                         return false;
     if (online) {
       var ov = String(d.ONLINE||'').toUpperCase().trim();
-      if (online === 'ONLINE'  && ov !== 'ONLINE') return false;
+      if (online === 'ONLINE'  && ov !== 'ONLINE')              return false;
       if (online === 'OFFLINE' && (ov === 'ONLINE' || ov === '')) return false;
-      if (online === 'BRANCO'  && ov !== '') return false;
+      if (online === 'BRANCO'  && ov !== '')                    return false;
     }
     if (busca) {
       var txt = [d.nis, d.ID_Equip, d.municipio, d.rodovia].join(' ').toLowerCase();
@@ -596,7 +429,6 @@ function aplicarFiltros() {
   _atualizarDashboard(filtrado);
 }
 
-/* ═══════════════ DASHBOARD ═══════════════ */
 function _atualizarDashboard(lista) {
   var total      = lista.length;
   var online     = lista.filter(_isOnline).length;
@@ -628,294 +460,146 @@ function _atualizarDashboard(lista) {
   });
 }
 
-/* ═══════════════ TABELA PRINCIPAL ═══════════════ */
 function _renderTabela(lista) {
   var tbody = document.querySelector('#tabelaCronograma tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
-
   if (lista.length === 0) {
     tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--text-muted);">Nenhum resultado encontrado.</td></tr>';
     return;
   }
-
   lista.forEach(function(d) {
     var concluido = _isConcluido(d);
-    var rowStyle  = concluido ? 'background:rgba(0,208,132,0.04);' : '';
-    var prazo     = d._prazo || '';
+    var rowClass  = concluido ? ' class="row-concluido"' : '';
+    var prazo     = d._prazo || (_colPrazo ? (d[_colPrazo]||'') : '');
     var etapasHtml = '';
-
     Object.keys(ETAPAS).forEach(function(nome) {
       var col = ETAPAS[nome];
       if (col === 'MONTAGEM_ESTRUTURAL_REALIZADO' && _montEstrutNA(d)) {
-        etapasHtml += '<td style="text-align:center;"><span style="font-size:10px;color:rgba(232,237,245,0.2);">N/A</span></td>';
+        etapasHtml += '<td style="text-align:center;"><span style="font-size:10px;color:var(--text-muted);">N/A</span></td>';
         return;
       }
       var ok = _etapaConcluida(d, col);
-      etapasHtml += '<td style="text-align:center;"><span class="' + (ok?'etapa-ok':'etapa-no') + '">' + (ok?'✓':'—') + '</span></td>';
+      etapasHtml += '<td style="text-align:center;"><span class="'+(ok?'etapa-ok':'etapa-no')+'">'+(ok?'✓':'—')+'</span></td>';
     });
-
     tbody.innerHTML +=
-      '<tr style="' + rowStyle + '">' +
-      '<td><strong>' + (d.nis||'—') + '</strong></td>' +
-      '<td style="font-size:10px;color:rgba(232,237,245,0.45);">' + (prazo||'—') + '</td>' +
-      '<td>' + (d.ID_Equip||'—') + '</td>' +
-      '<td>' + (d.municipio||'—') + '</td>' +
-      '<td>' + (d.ENERGIZACAO||'—') + '</td>' +
-      '<td><span class="badge ' + (_isOnline(d)?'badge-online':'badge-offline') + '">' + (d.ONLINE||'—') + '</span></td>' +
-      '<td>' + (d.Equipe_civil||'—') + '</td>' +
-      '<td>' + (d.Equipe_eletronica||'—') + '</td>' +
-      etapasHtml +
-      '</tr>';
+      '<tr'+rowClass+'>' +
+      '<td><strong style="color:var(--kopp-blue);">'+(d.nis||'—')+'</strong></td>' +
+      '<td style="font-size:10px;color:var(--text-muted);">'+(prazo||'—')+'</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--kopp-blue);">'+(d.ID_Equip||'—')+'</td>' +
+      '<td style="font-weight:600;">'+(d.municipio||'—')+'</td>' +
+      '<td>'+(d.ENERGIZACAO||'—')+'</td>' +
+      '<td><span class="badge '+(_isOnline(d)?'badge-online':'badge-offline')+'">'+(d.ONLINE||'—')+'</span></td>' +
+      '<td style="font-size:11px;">'+(d.Equipe_civil||'—')+'</td>' +
+      '<td style="font-size:11px;">'+(d.Equipe_eletronica||'—')+'</td>' +
+      etapasHtml + '</tr>';
   });
 }
+</script>
 
-/* ═══════════════════════════════════════════════════════════
-   COBERTURA DE SINAL
-═══════════════════════════════════════════════════════════ */
+<!-- SISGO -->
+<script>
 (function() {
-  /* _linhas = array de objetos por equipamento (uma linha do Excel) */
-  var _linhas    = [];
-  var _filtroCob = '';   /* filtro dominante por linha */
-
-  /* ── helpers ── */
-  function normCob(v) {
-    if (!v || String(v).trim() === '') return 'N/D';
-    var u = String(v).trim().toUpperCase();
-    if (u.indexOf('SEM COBERTURA') !== -1) return 'Sem Cobertura';
-    if (u.indexOf('5G') !== -1) return '5G/4G/3G';
-    if (u.indexOf('4G') !== -1 && u.indexOf('3G') !== -1) return '4G e 3G';
-    if (u.indexOf('4G') !== -1) return '4G';
-    if (u.indexOf('3G') !== -1) return '3G';
-    if (u.indexOf('2G') !== -1) return '2G';
-    return 'N/D';
-  }
-
-  function temSinal(v) { return v !== 'Sem Cobertura' && v !== 'N/D'; }
-
-  /* dominante por linha individual */
-  function getDomLinha(l) {
-    var t = temSinal(l.tN), c = temSinal(l.cN), v = temSinal(l.vN);
-    if (!t && !c && !v) return 'SEM SINAL';
-    var cnt = (t?1:0) + (c?1:0) + (v?1:0);
-    if (t && c && v) return 'EMPATE';
-    /* maioria simples: quem tem, ganha — em caso de dois iguais = empate */
-    if (t && c && !v) return 'EMPATE';
-    if (t && !c && v) return 'EMPATE';
-    if (!t && c && v) return 'EMPATE';
-    if (t) return 'TIM';
-    if (c) return 'CLARO';
-    return 'VIVO';
-  }
-
-  function hexToRgb(hex) {
-    var r = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '255,255,255';
-  }
-
-  function barHtml(val, total, cor, label) {
-    var pct = total > 0 ? Math.round(val/total*100) : 0;
-    return '<div style="display:flex;align-items:center;gap:10px;">' +
-      '<span style="font-size:10px;color:rgba(232,237,245,0.5);width:52px;letter-spacing:0.5px;text-transform:uppercase;">' + label + '</span>' +
-      '<div style="flex:1;height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;">' +
-      '<div style="height:100%;width:'+pct+'%;background:'+cor+';border-radius:3px;transition:width 0.6s;"></div></div>' +
-      '<span style="font-size:11px;font-weight:600;color:'+cor+';min-width:42px;text-align:right;">'+pct+'% ' +
-      '<span style="font-size:9px;color:rgba(232,237,245,0.3);">('+val+')</span></span></div>';
-  }
-
-  function domBadge(dom) {
-    var s = {
-      'TIM':       'background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.4)',
-      'CLARO':     'background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.4)',
-      'VIVO':      'background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.4)',
-      'EMPATE':    'background:rgba(0,208,132,0.12);color:#00d084;border:1px solid rgba(0,208,132,0.3)',
-      'SEM SINAL': 'background:rgba(255,71,87,0.1);color:#ff4757;border:1px solid rgba(255,71,87,0.3)'
-    }[dom] || 'background:rgba(255,255,255,0.05);color:rgba(232,237,245,0.3);border:1px solid rgba(255,255,255,0.1)';
-    return '<span style="'+s+';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;">'+dom+'</span>';
-  }
-
-  function sinalBadge(val) {
-    if (val === 'Sem Cobertura' || val === 'N/D') {
-      return '<span style="color:#ff4757;font-size:10px;font-weight:600;">SEM SINAL</span>';
-    }
-    return '<span style="color:#00d084;font-size:10px;">'+val+'</span>';
-  }
-
-  /* ── Botões dominante ── */
-  var OPCOES = [
-    {f:'',          label:'Todos',     cor:'rgba(232,237,245,0.7)'},
-    {f:'TIM',       label:'TIM',       cor:'#ef4444'},
-    {f:'CLARO',     label:'CLARO',     cor:'#f97316'},
-    {f:'VIVO',      label:'VIVO',      cor:'#a855f7'},
-    {f:'EMPATE',    label:'Empate',    cor:'#00d084'},
-    {f:'SEM SINAL', label:'Sem sinal', cor:'#ff4757'}
+  var API_URL      = 'https://api-processamento-v2.goinfra.go.gov.br/api/v1/ControleInstalacao';
+  var OPERADORAS   = [
+    { id: '1', label: 'KOPP-2025001', elId: 'sisgoOp1' },
+    { id: '5', label: 'KOPP-2025005', elId: 'sisgoOp5' }
+  ];
+  var STATUS_ALVO  = 'Instalado';
+  var INTERVALO_MS = 4 * 60 * 60 * 1000;
+  var CAMPOS_FAIXAS = [
+    'numDeFaixas_CorrigidoCol','numDeFaixasCorrigidoCol',
+    'NumDeFaixas_CorrigidoCol','NumDeFaixasCorrigidoCol',
+    'numDeFaixas','NumDeFaixas','numFaixas','qtdFaixas'
   ];
 
-  function injetarBotoes() {
-    var wrap = document.getElementById('filtrosCobWrap');
-    if (!wrap || wrap.children.length > 0) return;
-    OPCOES.forEach(function(op) {
-      var btn = document.createElement('button');
-      btn.className   = 'btn-cob';
-      btn.textContent = op.label;
-      btn.dataset.f   = op.f;
-      btn.dataset.cor = op.cor;
-      btn.addEventListener('click', function() {
-        _filtroCob = op.f;
-        syncBotoes();
-        aplicarFiltroCob();
-      });
-      wrap.appendChild(btn);
-    });
-    syncBotoes();
-  }
+  function setValor(el, txt) { if (el) el.textContent = txt; }
 
-  function syncBotoes() {
-    document.querySelectorAll('#filtrosCobWrap .btn-cob').forEach(function(btn) {
-      var cor   = btn.dataset.cor;
-      var ativo = btn.dataset.f === _filtroCob;
-      if (ativo) {
-        if (btn.dataset.f === '') {
-          btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba(255,255,255,0.1);border:1px solid rgba(232,237,245,0.5);color:rgba(232,237,245,0.9);letter-spacing:0.4px;';
-        } else {
-          btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba('+hexToRgb(cor)+',0.12);border:1.5px solid '+cor+';color:'+cor+';letter-spacing:0.4px;';
-        }
-      } else {
-        btn.style.cssText = 'font-size:11px;font-weight:600;padding:4px 14px;border-radius:20px;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:rgba(232,237,245,0.5);letter-spacing:0.4px;';
+  function extrairFaixas(item) {
+    for (var i = 0; i < CAMPOS_FAIXAS.length; i++) {
+      var v = item[CAMPOS_FAIXAS[i]];
+      if (v !== undefined && v !== null) {
+        var n = parseFloat(String(v).replace(',', '.'));
+        if (!isNaN(n)) return n;
       }
-    });
-  }
-
-  /* ── Select município ── preenche com nomes únicos e não-vazios ── */
-  function preencherSelectMun() {
-    var sel = document.getElementById('cobFiltroMun');
-    if (!sel) return;
-    var cur = sel.value;
-    sel.innerHTML = '<option value="">Todos</option>';
-    /* coleta municípios únicos das linhas */
-    var vistos = [];
-    _linhas.forEach(function(l) {
-      if (l.mun && l.mun !== '—' && vistos.indexOf(l.mun) === -1) {
-        vistos.push(l.mun);
-      }
-    });
-    vistos.sort();
-    vistos.forEach(function(m) {
-      var o = document.createElement('option');
-      o.value       = m;
-      o.textContent = m;
-      sel.appendChild(o);
-    });
-    sel.value = (cur && vistos.indexOf(cur) !== -1) ? cur : '';
-  }
-
-  /* ── Filtro + render ── */
-  function aplicarFiltroCob() {
-    var munSel = (document.getElementById('cobFiltroMun')||{}).value || '';
-    var filtrados = _linhas.filter(function(l) {
-      if (_filtroCob && getDomLinha(l) !== _filtroCob) return false;
-      if (munSel && l.mun !== munSel) return false;
-      return true;
-    });
-    renderTabelaCob(filtrados);
-  }
-
-  window.aplicarFiltroCob = aplicarFiltroCob;
-
-  /* ── Tabela: uma linha por equipamento ── */
-  function renderTabelaCob(filtrados) {
-    var tbody = document.getElementById('cobTabelaBody');
-    var wrap  = document.getElementById('cobTabelaWrap');
-    var count = document.getElementById('cobTabelaCount');
-    if (!tbody) return;
-    wrap.style.display = filtrados.length > 0 ? 'block' : 'none';
-    if (count) count.textContent = filtrados.length + ' equipamentos';
-    tbody.innerHTML = '';
-
-    filtrados.forEach(function(l) {
-      var dom = getDomLinha(l);
-      tbody.innerHTML +=
-        '<tr>' +
-        '<td style="font-size:11px;font-family:monospace;color:rgba(232,237,245,0.7);letter-spacing:0.3px;white-space:nowrap;">' + (l.estudo||'—') + '</td>' +
-        '<td style="font-weight:600;white-space:nowrap;">' + (l.mun||'—') + '</td>' +
-        '<td>' + sinalBadge(l.tN) + '</td>' +
-        '<td>' + sinalBadge(l.cN) + '</td>' +
-        '<td>' + sinalBadge(l.vN) + '</td>' +
-        '<td>' + domBadge(dom) + '</td>' +
-        '</tr>';
-    });
-  }
-
-  /* ── Processa Excel ── */
-  function renderCobertura(dadosBrutos) {
-    var total   = dadosBrutos.length;
-    var timCom  = 0, claroCom = 0, vivoCom = 0, semTodos = 0;
-
-    var ch0    = total > 0 ? Object.keys(dadosBrutos[0]) : [];
-    var cTIM0  = ch0.find(function(k){ return k.trim().toUpperCase()==='TIM'; });
-    var cCLAR0 = ch0.find(function(k){ return k.trim().toUpperCase()==='CLARO'; });
-    var cVIVO0 = ch0.find(function(k){ return k.trim().toUpperCase()==='VIVO'; });
-    var cMun0  = ch0.find(function(k){ var u=k.trim().toUpperCase(); return u==='MUNICIPIO'||u==='MUNICÍPIO'; });
-    var cEst0  = ch0.find(function(k){ var u=k.trim().toUpperCase(); return u==='ESTUDO_TECNICO'||u==='ESTUDO TECNICO'||u==='ESTUDO_TÉCNICO'||u==='ESTUDO TÉCNICO'||u.indexOf('ESTUDO')!==-1; });
-
-    _linhas = [];
-
-    dadosBrutos.forEach(function(d) {
-      var mun    = cMun0  ? String(d[cMun0]  ||'').trim() : '—';
-      var estudo = cEst0  ? String(d[cEst0]  ||'').trim() : '—';
-      var tN     = normCob(cTIM0  ? d[cTIM0]  : '');
-      var cN     = normCob(cCLAR0 ? d[cCLAR0] : '');
-      var vN     = normCob(cVIVO0 ? d[cVIVO0] : '');
-
-      if (temSinal(tN)) timCom++;
-      if (temSinal(cN)) claroCom++;
-      if (temSinal(vN)) vivoCom++;
-      if (!temSinal(tN) && !temSinal(cN) && !temSinal(vN)) semTodos++;
-
-      _linhas.push({estudo:estudo, mun:mun, tN:tN, cN:cN, vN:vN});
-    });
-
-    function sc(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
-    sc('cobTotal',    total);
-    sc('cobTIM',      timCom);
-    sc('cobCLARO',    claroCom);
-    sc('cobVIVO',     vivoCom);
-    sc('cobSemSinal', semTodos);
-
-    var barras = document.getElementById('cobBarras');
-    if (barras) {
-      barras.innerHTML =
-        barHtml(timCom,   total, '#ef4444', 'TIM') +
-        barHtml(claroCom, total, '#f97316', 'CLARO') +
-        barHtml(vivoCom,  total, '#a855f7', 'VIVO') +
-        barHtml(semTodos, total, '#ff4757', 'Sem sinal');
     }
-
-    preencherSelectMun();
-    injetarBotoes();
-    aplicarFiltroCob();
-
-    var st = document.getElementById('coberturaStatus');
-    if (st) st.textContent = total + ' locais carregados de basecadastro_NIs.xlsx';
+    var chaves = Object.keys(item);
+    for (var j = 0; j < chaves.length; j++) {
+      if (chaves[j].toLowerCase().indexOf('faixa') !== -1) {
+        var v2 = item[chaves[j]];
+        var n2 = parseFloat(String(v2 || '0').replace(',', '.'));
+        if (!isNaN(n2)) return n2;
+      }
+    }
+    return 0;
   }
 
-  fetch('data/basecadastro_NIs.xlsx')
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.arrayBuffer(); })
-    .then(function(buf){
-      var wb    = XLSX.read(buf,{type:'array'});
-      var sheet = wb.Sheets[wb.SheetNames[0]];
-      renderCobertura(XLSX.utils.sheet_to_json(sheet,{defval:''}));
-    })
-    .catch(function(err){
-      var st = document.getElementById('coberturaStatus');
-      if(st) st.innerHTML = '\u26a0\ufe0f N\u00e3o foi poss\u00edvel carregar <code>data/basecadastro_NIs.xlsx</code> \u2014 verifique se o arquivo existe na pasta <code>data/</code>';
-      console.warn('Erro cobertura:', err);
+  function buscarOperadora(operadoraId) {
+    return new Promise(function(resolve, reject) {
+      var somaFaixas = 0, pagina = 1, tamPag = 200;
+      function buscarPagina() {
+        var url = API_URL
+          + '?statusInstalacao=' + encodeURIComponent(STATUS_ALVO)
+          + '&operadoraId='      + encodeURIComponent(operadoraId)
+          + '&page=' + pagina + '&pageSize=' + tamPag;
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+          .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function(json) {
+            var itens = [];
+            if (Array.isArray(json)) itens = json;
+            else if (json.data && Array.isArray(json.data)) itens = json.data;
+            else if (json.items && Array.isArray(json.items)) itens = json.items;
+            itens = itens.filter(function(item) {
+              var s  = String(item.statusInstalacao || item.status || '').toLowerCase();
+              var op = String(item.operadoraId || item.operadora || '');
+              return s === STATUS_ALVO.toLowerCase() && op === String(operadoraId);
+            });
+            itens.forEach(function(item) { somaFaixas += extrairFaixas(item); });
+            if (itens.length === tamPag) { pagina++; buscarPagina(); }
+            else resolve(somaFaixas);
+          })
+          .catch(function(err) { reject(err); });
+      }
+      buscarPagina();
     });
+  }
 
+  function atualizarSisgo() {
+    var elValor = document.getElementById('cardSisgoValor');
+    var elOps   = document.getElementById('cardSisgoOps');
+    if (elValor) { elValor.className = 'sisgo-value loading'; elValor.textContent = '...'; }
+    var promessas = OPERADORAS.map(function(op) {
+      return buscarOperadora(op.id)
+        .then(function(faixas) { return { op: op, faixas: faixas, ok: true }; })
+        .catch(function(err)   { console.warn('[SISGO]', op.id, err); return { op: op, faixas: 0, ok: false }; });
+    });
+    Promise.all(promessas).then(function(resultados) {
+      var totalFaixas = 0, todosFalhou = true;
+      resultados.forEach(function(res) {
+        totalFaixas += res.faixas;
+        if (res.ok) todosFalhou = false;
+        setValor(document.getElementById(res.op.elId), res.ok ? res.faixas.toLocaleString('pt-BR') : '—');
+      });
+      if (elValor) { elValor.className = 'sisgo-value'; elValor.textContent = todosFalhou ? '—' : totalFaixas.toLocaleString('pt-BR'); }
+      if (elOps) elOps.style.display = 'flex';
+      var wrap = document.getElementById('cardSisgoWrap');
+      if (wrap) { var ea = wrap.querySelector('.sisgo-erro'); if (ea) wrap.removeChild(ea); }
+      if (todosFalhou && wrap) {
+        var erro = document.createElement('div');
+        erro.className = 'sisgo-erro';
+        erro.textContent = '⚠ Não foi possível conectar à API SISGO';
+        wrap.appendChild(erro);
+      }
+    });
+  }
+
+  atualizarSisgo();
+  setInterval(atualizarSisgo, INTERVALO_MS);
 })();
+</script>
 
-/* ── chama o carregamento do Excel principal ── */
-carregarDados(inicializarPagina);
+<script>
+  carregarDados(inicializarPagina);
 </script>
 
 </body>

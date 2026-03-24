@@ -8,14 +8,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/auth.js"></script>
     <style>
-        /* Cards de clima */
         .clima-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 12px;
             margin-bottom: 20px;
         }
-
         .clima-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -49,7 +47,23 @@
         .cb-forte     { background:rgba(255,71,87,0.15);   color:#ff4757; }
         .cb-extrema   { background:rgba(155,93,229,0.15);  color:#9b5de5; }
 
-        /* Previsão 15 dias */
+        /* Previsão expandida por município */
+        .previsao-municipio {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .prev-mun-titulo {
+            font-size:11px; font-weight:700;
+            color:rgba(232,237,245,0.8);
+            margin-bottom:10px;
+            display:flex; align-items:center; gap:8px;
+        }
+        .prev-mun-titulo span { font-size:9px; color:var(--text-muted); font-weight:400; }
+
+        /* Previsão 10 dias */
         .previsao-section {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -97,9 +111,8 @@
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
-        .clima-filtro-bar .filtro-item { flex:1; min-width:160px; }
 
-        /* Estado de loading */
+        /* Loading */
         .loading-clima {
             text-align:center; padding:40px;
             color:var(--text-muted); font-size:12px;
@@ -115,7 +128,7 @@
         }
         @keyframes spin { to { transform:rotate(360deg); } }
 
-        /* Alerta de chuva */
+        /* Alerta */
         .alerta-bar {
             background: rgba(255,71,87,0.1);
             border: 1px solid rgba(255,71,87,0.25);
@@ -127,6 +140,47 @@
             display:none;
         }
         .alerta-bar.visivel { display:flex; align-items:center; gap:8px; }
+
+        /* Botão exportar */
+        .btn-exportar {
+            padding: 8px 18px;
+            background: linear-gradient(135deg, #0a6e3a, #00d084);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            cursor: pointer;
+            align-self: flex-end;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+        .btn-exportar:hover { opacity: 0.85; }
+        .btn-exportar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Seção de previsão todos */
+        #previsaoTodosSection {
+            display: none;
+        }
+        .prev-todos-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .prev-todos-header h3 {
+            font-family:'Rajdhani',sans-serif;
+            font-size:0.85rem; font-weight:600;
+            color:var(--text-muted); letter-spacing:1.5px;
+            text-transform:uppercase; margin:0;
+        }
     </style>
 </head>
 <body>
@@ -152,22 +206,23 @@
         <div class="page-header">
             <div>
                 <h1>🌦️ Clima por Localidade</h1>
-                <p>Previsão 3 dias · WeatherAPI (plano gratuito) · Por NIS e Município</p>
+                <p>Previsão 10 dias (Open-Meteo) · Por NIS e Município</p>
             </div>
         </div>
 
         <div class="page-body">
 
             <!-- Filtros -->
+            <!-- Linha 1: Município + NI + botões -->
             <div class="clima-filtro-bar">
                 <div class="filtro-item" style="flex:2;min-width:200px;">
-                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">Município</label>
+                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">🏙️ Município</label>
                     <select id="cFiltroMun" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e8edf5;font-size:12px;outline:none;">
                         <option value="">Todos os municípios</option>
                     </select>
                 </div>
                 <div class="filtro-item" style="min-width:160px;">
-                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">NI</label>
+                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">📋 NI</label>
                     <select id="cFiltroNI" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e8edf5;font-size:12px;outline:none;">
                         <option value="">Todas as NIs</option>
                     </select>
@@ -175,6 +230,34 @@
                 <button onclick="buscarClima()" style="padding:8px 18px;background:linear-gradient(135deg,#0055cc,#0078ff);border:none;border-radius:6px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:1.5px;cursor:pointer;align-self:flex-end;height:36px;">
                     🔄 Atualizar
                 </button>
+                <button class="btn-exportar" id="btnExportar" onclick="exportarExcel()" disabled>
+                    📥 Exportar Excel
+                </button>
+            </div>
+
+            <!-- Linha 2: Condição + Ordenar -->
+            <div class="clima-filtro-bar" style="margin-bottom:14px;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:8px;">
+                <div class="filtro-item" style="min-width:180px;">
+                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">🌧️ Condição de Chuva</label>
+                    <select id="cFiltroCondicao" onchange="aplicarFiltrosCards()" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e8edf5;font-size:12px;outline:none;">
+                        <option value="">Todas as condições</option>
+                        <option value="Sem chuva">☀️ Sem chuva</option>
+                        <option value="Chuva fraca">🌦️ Chuva fraca</option>
+                        <option value="Chuva moderada">🌧️ Chuva moderada</option>
+                        <option value="Chuva forte">⛈️ Chuva forte</option>
+                    </select>
+                </div>
+                <div class="filtro-item" style="min-width:180px;">
+                    <label style="font-size:10px;font-weight:600;color:rgba(232,237,245,0.3);letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:5px;">↕️ Ordenar por</label>
+                    <select id="cOrdenar" onchange="aplicarFiltrosCards()" style="width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#e8edf5;font-size:12px;outline:none;">
+                        <option value="condicao">⚠️ Condição (pior primeiro)</option>
+                        <option value="municipio">🔤 Município (A-Z)</option>
+                        <option value="chuva_desc">💧 Precipitação (maior)</option>
+                        <option value="chuva_asc">💧 Precipitação (menor)</option>
+                        <option value="temp_desc">🌡️ Temperatura (maior)</option>
+                    </select>
+                </div>
+                <div style="align-self:flex-end;font-size:10px;color:rgba(232,237,245,0.3);padding-bottom:10px;" id="contadorCards">— municípios</div>
             </div>
 
             <!-- Alerta de chuva forte -->
@@ -189,10 +272,19 @@
                 </div>
             </div>
 
-            <!-- Previsão 15 dias da cidade selecionada -->
+            <!-- Previsão 10 dias da cidade selecionada (clique no card) -->
             <div class="previsao-section" id="previsaoSection" style="display:none;">
                 <h3 id="previsaoTitulo">📅 Previsão 10 dias</h3>
                 <div class="previsao-dias" id="previsaoDias"></div>
+            </div>
+
+            <!-- Previsão de TODOS os municípios expandida -->
+            <div id="previsaoTodosSection">
+                <div class="prev-todos-header">
+                    <h3>📅 Previsão 10 dias — Todos os Municípios</h3>
+                    <button onclick="fecharPrevisaoTodos()" style="padding:4px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:rgba(232,237,245,0.6);font-size:11px;cursor:pointer;">✕ Fechar</button>
+                </div>
+                <div id="previsaoTodosBody"></div>
             </div>
 
         </div>
@@ -200,12 +292,12 @@
 </div>
 
 <script>
-// Open-Meteo API — gratuita, sem chave, até 16 dias
-// https://open-meteo.com/
-
 var locaisCarregados = [];
 var climaCache = {};
 var cidadeSelecionada = null;
+var ultimaLista = [];
+var _todosResultados = [];  /* guarda todos os resultados para filtro/ordenação */
+var _ORDEM_COND = {'Chuva forte':0,'Chuva moderada':1,'Chuva fraca':2,'Sem chuva':3};
 
 var WMO_ICONS = {
     0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
@@ -264,7 +356,6 @@ function carregarLocais() {
             });
 
             locaisCarregados = Object.values(mapa);
-            console.log('Municípios únicos:', locaisCarregados.length);
 
             preencherFiltroClima();
 
@@ -294,6 +385,10 @@ function preencherFiltroClima() {
     });
     selMun.addEventListener('change', buscarClima);
     selNI.addEventListener('change',  buscarClima);
+    var selCond = document.getElementById('cFiltroCondicao');
+    var selOrd  = document.getElementById('cOrdenar');
+    if (selCond) selCond.addEventListener('change', aplicarFiltrosCards);
+    if (selOrd)  selOrd.addEventListener('change',  aplicarFiltrosCards);
 }
 
 function buscarClima() {
@@ -306,36 +401,122 @@ function buscarClima() {
         return true;
     });
 
-    if (lista.length > 12) lista = lista.slice(0,12);
+    ultimaLista = lista;
+
+    /* desabilita exportar enquanto carrega */
+    var btnExp = document.getElementById('btnExportar');
+    if (btnExp) btnExp.disabled = true;
 
     var grid = document.getElementById('climaGrid');
-    grid.innerHTML = '<div class="loading-clima" style="grid-column:1/-1;"><div class="spin"></div><br>Buscando previsão para '+lista.length+' localidades (Open-Meteo)...</div>';
+    grid.innerHTML = '<div class="loading-clima" style="grid-column:1/-1;"><div class="spin"></div><br>Buscando previsão para <strong style="color:#e8edf5;">'+lista.length+'</strong> localidades... <span id="progressoClima" style="color:#4d9fff;">0/'+lista.length+'</span></div>';
 
-    // Open-Meteo: uma chamada por local, paraleliza
-    var promises = lista.map(function(local){
-        if (climaCache[local.municipio]) {
-            return Promise.resolve({local:local, data:climaCache[local.municipio]});
-        }
-        var url = 'https://api.open-meteo.com/v1/forecast?' +
-            'latitude='+local.lat.toFixed(4)+
-            '&longitude='+local.lon.toFixed(4)+
-            '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,windspeed_10m_max' +
-            '&current_weather=true' +
-            '&timezone=America%2FSao_Paulo' +
-            '&forecast_days=10';
-        return fetch(url)
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-                climaCache[local.municipio] = data;
-                return {local:local, data:data};
-            })
-            .catch(function(){ return {local:local, data:null}; });
-    });
+    /* fecha seção expandida ao atualizar */
+    fecharPrevisaoTodos();
+    document.getElementById('previsaoSection').style.display = 'none';
 
-    Promise.all(promises).then(renderizarClima);
+    /* Processa em lotes de 10 para não sobrecarregar a API */
+    var LOTE = 10;
+    var resultados = [];
+    var concluidos = 0;
+
+    function buscarLote(inicio) {
+        var lote = lista.slice(inicio, inicio + LOTE);
+        var promises = lote.map(function(local){
+            if (climaCache[local.municipio]) {
+                return Promise.resolve({local:local, data:climaCache[local.municipio]});
+            }
+            var url = 'https://api.open-meteo.com/v1/forecast?' +
+                'latitude='+local.lat.toFixed(4)+
+                '&longitude='+local.lon.toFixed(4)+
+                '&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,windspeed_10m_max' +
+                '&current_weather=true' +
+                '&timezone=America%2FSao_Paulo' +
+                '&forecast_days=10';
+            return fetch(url)
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                    climaCache[local.municipio] = data;
+                    return {local:local, data:data};
+                })
+                .catch(function(){ return {local:local, data:null}; });
+        });
+
+        Promise.all(promises).then(function(loteResultados){
+            resultados = resultados.concat(loteResultados);
+            concluidos += loteResultados.length;
+
+            var prog = document.getElementById('progressoClima');
+            if (prog) prog.textContent = concluidos+'/'+lista.length;
+
+            if (concluidos >= lista.length) {
+                renderizarClima(resultados);
+            } else {
+                /* 300ms entre lotes para respeitar rate limit */
+                setTimeout(function(){ buscarLote(inicio + LOTE); }, 300);
+            }
+        });
+    }
+
+    buscarLote(0);
 }
 
 function renderizarClima(resultados) {
+    _todosResultados = resultados;  /* salva para reuso no filtro/ordenação */
+    aplicarFiltrosCards();
+}
+
+function aplicarFiltrosCards() {
+    var filtCond = (document.getElementById('cFiltroCondicao')||{}).value||'';
+    var ordenar  = (document.getElementById('cOrdenar')||{value:'condicao'}).value||'condicao';
+
+    /* filtra por condição se selecionada */
+    var lista = _todosResultados.filter(function(res){
+        if (!filtCond) return true;
+        var data = res.data;
+        if (!data||!data.daily) return false;
+        var chuva0 = parseFloat(data.daily.precipitation_sum[0]||0);
+        var cc = classeChuva(chuva0);
+        return cc.texto === filtCond;
+    });
+
+    /* ordena */
+    lista = lista.slice().sort(function(a,b){
+        var dA = a.data && a.data.daily;
+        var dB = b.data && b.data.daily;
+        if (ordenar === 'municipio') {
+            return a.local.municipio.localeCompare(b.local.municipio);
+        }
+        if (ordenar === 'chuva_desc') {
+            var cA = dA ? parseFloat(dA.precipitation_sum[0]||0) : 0;
+            var cB = dB ? parseFloat(dB.precipitation_sum[0]||0) : 0;
+            return cB - cA;
+        }
+        if (ordenar === 'chuva_asc') {
+            var cA = dA ? parseFloat(dA.precipitation_sum[0]||0) : 0;
+            var cB = dB ? parseFloat(dB.precipitation_sum[0]||0) : 0;
+            return cA - cB;
+        }
+        if (ordenar === 'temp_desc') {
+            var tA = dA ? parseFloat(dA.temperature_2m_max[0]||0) : 0;
+            var tB = dB ? parseFloat(dB.temperature_2m_max[0]||0) : 0;
+            return tB - tA;
+        }
+        /* padrão: condição pior primeiro */
+        var cA = dA ? parseFloat(dA.precipitation_sum[0]||0) : 0;
+        var cB = dB ? parseFloat(dB.precipitation_sum[0]||0) : 0;
+        var oA = _ORDEM_COND[classeChuva(cA).texto] !== undefined ? _ORDEM_COND[classeChuva(cA).texto] : 9;
+        var oB = _ORDEM_COND[classeChuva(cB).texto] !== undefined ? _ORDEM_COND[classeChuva(cB).texto] : 9;
+        return oA - oB;
+    });
+
+    /* atualiza contador */
+    var contador = document.getElementById('contadorCards');
+    if (contador) contador.textContent = lista.length + ' município' + (lista.length!==1?'s':'');
+
+    _renderCards(lista);
+}
+
+function _renderCards(resultados) {
     var grid = document.getElementById('climaGrid');
     grid.innerHTML = '';
     var alertas = [];
@@ -349,15 +530,14 @@ function renderizarClima(resultados) {
             return;
         }
 
-        var cur      = data.current_weather;
-        var daily    = data.daily;
-        var chuva0   = parseFloat(daily.precipitation_sum[0]||0);
-        var prob0    = parseInt(daily.precipitation_probability_max[0]||0);
-        var umidade  = '—'; // Open-Meteo free não tem umidade hourly sem parâmetro extra
-        var cc       = classeChuva(chuva0);
-        var icone    = iconeWMO(daily.weathercode[0]);
-        var desc     = descWMO(daily.weathercode[0]);
-        var nisStr   = local.nis.slice(0,3).join(', ');
+        var cur    = data.current_weather;
+        var daily  = data.daily;
+        var chuva0 = parseFloat(daily.precipitation_sum[0]||0);
+        var prob0  = parseInt(daily.precipitation_probability_max[0]||0);
+        var cc     = classeChuva(chuva0);
+        var icone  = iconeWMO(daily.weathercode[0]);
+        var desc   = descWMO(daily.weathercode[0]);
+        var nisStr = local.nis.slice(0,3).join(', ');
 
         if (chuva0 >= 20) alertas.push(local.municipio+' ('+chuva0.toFixed(1)+'mm)');
 
@@ -377,7 +557,7 @@ function renderizarClima(resultados) {
             '</div>';
     });
 
-    // Alerta
+    /* Alerta */
     var alertaBar   = document.getElementById('alertaChuva');
     var alertaTexto = document.getElementById('alertaTexto');
     if (alertas.length>0 && alertaBar && alertaTexto) {
@@ -387,15 +567,23 @@ function renderizarClima(resultados) {
         alertaBar.classList.remove('visivel');
     }
 
+    /* Habilita exportar */
+    var btnExp = document.getElementById('btnExportar');
+    if (btnExp) btnExp.disabled = false;
+
+    /* Seleciona primeiro card automaticamente */
     if (resultados.length>0 && resultados[0].data) {
         selecionarCidade(resultados[0].local.municipio);
     }
+
+    /* Gera previsão expandida de todos automaticamente */
+    gerarPrevisaoTodos(resultados);
 }
 
 function selecionarCidade(municipio) {
     cidadeSelecionada = municipio;
     document.querySelectorAll('.clima-card').forEach(function(c){ c.classList.remove('selecionado'); });
-    var cardEl = document.getElementById('cc_'+municipio.replace(/[\s\/]/g,'_'));
+    var cardEl = document.getElementById('cc_'+municipio.replace(/[^a-zA-Z0-9]/g,'_'));
     if (cardEl) cardEl.classList.add('selecionado');
 
     var data = climaCache[municipio];
@@ -406,7 +594,7 @@ function selecionarCidade(municipio) {
     var titulo    = document.getElementById('previsaoTitulo');
     var container = document.getElementById('previsaoDias');
 
-    titulo.textContent = '📅 Previsão 10 dias — '+municipio+' (Open-Meteo)';
+    titulo.textContent = '📅 Previsão 10 dias — '+municipio;
     section.style.display = 'block';
     container.innerHTML = '';
 
@@ -435,6 +623,176 @@ function selecionarCidade(municipio) {
             '<div class="dia-bar"><div class="dia-bar-fill" style="width:'+barPct+'%;background:'+barCor+';"></div></div>'+
             '</div>';
     });
+}
+
+/* ── Previsão de TODOS os municípios ── */
+function gerarPrevisaoTodos(resultados) {
+    var section = document.getElementById('previsaoTodosSection');
+    var body    = document.getElementById('previsaoTodosBody');
+    var hoje    = new Date().toISOString().split('T')[0];
+
+    body.innerHTML = '';
+    var temDados = false;
+
+    resultados.forEach(function(res){
+        var local = res.local;
+        var data  = res.data;
+        if (!data || !data.daily) return;
+        temDados = true;
+
+        var daily  = data.daily;
+        var nisStr = local.nis.slice(0,3).join(' · ');
+
+        var diasHtml = '';
+        daily.time.forEach(function(data_dia, i){
+            var chuva  = parseFloat(daily.precipitation_sum[i]||0);
+            var prob   = parseInt(daily.precipitation_probability_max[i]||0);
+            var tmax   = Math.round(daily.temperature_2m_max[i]);
+            var tmin   = Math.round(daily.temperature_2m_min[i]);
+            var wcode  = daily.weathercode[i];
+            var isHoje = data_dia === hoje;
+            var dataFmt= data_dia.slice(5).replace('-','/');
+            var cc     = classeChuva(chuva);
+            var barPct = Math.min((chuva/30)*100,100);
+            var barCor = cc.cls==='chuva-sol'?'rgba(255,255,255,0.15)':cc.cls==='chuva-fraca'?'#4d9fff':cc.cls==='chuva-forte'?'#ff4757':'#9b5de5';
+
+            diasHtml +=
+                '<div class="dia-card'+(isHoje?' hoje':'')+'" title="'+descWMO(wcode)+'">'+
+                '<div class="dia-data">'+(isHoje?'Hoje':dataFmt)+'</div>'+
+                '<span class="dia-icone">'+iconeWMO(wcode)+'</span>'+
+                '<div class="dia-max">'+tmax+'°</div>'+
+                '<div class="dia-min">'+tmin+'°</div>'+
+                (chuva>0?'<div class="dia-chuva">'+chuva.toFixed(1)+'mm</div>':'<div class="dia-chuva" style="color:rgba(232,237,245,0.15);">0mm</div>')+
+                '<div style="font-size:8px;color:rgba(232,237,245,0.35);margin-top:1px;">'+prob+'%</div>'+
+                '<div class="dia-bar"><div class="dia-bar-fill" style="width:'+barPct+'%;background:'+barCor+';"></div></div>'+
+                '</div>';
+        });
+
+        body.innerHTML +=
+            '<div class="previsao-municipio">'+
+            '<div class="prev-mun-titulo">'+
+                '📍 '+local.municipio+
+                '<span>'+nisStr+'</span>'+
+            '</div>'+
+            '<div class="previsao-dias">'+diasHtml+'</div>'+
+            '</div>';
+    });
+
+    section.style.display = temDados ? 'block' : 'none';
+}
+
+function fecharPrevisaoTodos() {
+    var section = document.getElementById('previsaoTodosSection');
+    if (section) section.style.display = 'none';
+}
+
+/* ══════════════════════════════════════════
+   EXPORTAR EXCEL — gera no navegador com XLSX
+══════════════════════════════════════════ */
+function exportarExcel() {
+    var btnExp = document.getElementById('btnExportar');
+    if (btnExp) { btnExp.disabled = true; btnExp.textContent = '⏳ Gerando...'; }
+
+    var hoje = new Date().toISOString().split('T')[0];
+    var wb   = XLSX.utils.book_new();
+
+    /* ── Aba 1: Resumo do dia ── */
+    var resumo = [['Município', 'NIs', 'Temp. Atual (°C)', 'Temp. Máx (°C)', 'Temp. Mín (°C)', 'Precipitação (mm)', 'Prob. Chuva (%)', 'Vel. Vento (km/h)', 'Condição', 'Situação Chuva']];
+
+    ultimaLista.forEach(function(local){
+        var data = climaCache[local.municipio];
+        if (!data || !data.current_weather || !data.daily) {
+            resumo.push([local.municipio, local.nis.join(', '), 'N/D','N/D','N/D','N/D','N/D','N/D','N/D','N/D']);
+            return;
+        }
+        var cur    = data.current_weather;
+        var daily  = data.daily;
+        var chuva0 = parseFloat(daily.precipitation_sum[0]||0);
+        var prob0  = parseInt(daily.precipitation_probability_max[0]||0);
+        var cc     = classeChuva(chuva0);
+        resumo.push([
+            local.municipio,
+            local.nis.join(', '),
+            Math.round(cur.temperature),
+            Math.round(daily.temperature_2m_max[0]),
+            Math.round(daily.temperature_2m_min[0]),
+            chuva0.toFixed(1),
+            prob0,
+            Math.round(daily.windspeed_10m_max[0]||0),
+            descWMO(daily.weathercode[0]),
+            cc.texto
+        ]);
+    });
+
+    var wsResumo = XLSX.utils.aoa_to_sheet(resumo);
+    wsResumo['!cols'] = [
+        {wch:22},{wch:35},{wch:16},{wch:14},{wch:14},
+        {wch:18},{wch:16},{wch:18},{wch:22},{wch:18}
+    ];
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Hoje');
+
+    /* ── Aba 2: Previsão 10 dias (todas as cidades) ── */
+    var prev10 = [['Município', 'NIs', 'Data', 'Dia', 'Temp. Máx (°C)', 'Temp. Mín (°C)', 'Precipitação (mm)', 'Prob. Chuva (%)', 'Vel. Vento (km/h)', 'Condição', 'Situação Chuva']];
+    var diasSemana = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+    ultimaLista.forEach(function(local){
+        var data = climaCache[local.municipio];
+        if (!data || !data.daily) return;
+        var daily = data.daily;
+
+        daily.time.forEach(function(data_dia, i){
+            var chuva = parseFloat(daily.precipitation_sum[i]||0);
+            var prob  = parseInt(daily.precipitation_probability_max[i]||0);
+            var d     = new Date(data_dia+'T12:00:00');
+            var cc    = classeChuva(chuva);
+            prev10.push([
+                local.municipio,
+                local.nis.join(', '),
+                data_dia,
+                diasSemana[d.getDay()],
+                Math.round(daily.temperature_2m_max[i]),
+                Math.round(daily.temperature_2m_min[i]),
+                chuva.toFixed(1),
+                prob,
+                Math.round(daily.windspeed_10m_max[i]||0),
+                descWMO(daily.weathercode[i]),
+                cc.texto
+            ]);
+        });
+    });
+
+    var wsPrev = XLSX.utils.aoa_to_sheet(prev10);
+    wsPrev['!cols'] = [
+        {wch:22},{wch:35},{wch:12},{wch:6},{wch:14},
+        {wch:14},{wch:18},{wch:16},{wch:18},{wch:22},{wch:18}
+    ];
+    XLSX.utils.book_append_sheet(wb, wsPrev, 'Previsão 10 dias');
+
+    /* ── Aba 3: Alertas de chuva forte ── */
+    var alertas = [['Município', 'NIs', 'Data', 'Precipitação (mm)', 'Prob. Chuva (%)', 'Situação']];
+    ultimaLista.forEach(function(local){
+        var data = climaCache[local.municipio];
+        if (!data || !data.daily) return;
+        var daily = data.daily;
+        daily.time.forEach(function(data_dia, i){
+            var chuva = parseFloat(daily.precipitation_sum[i]||0);
+            var prob  = parseInt(daily.precipitation_probability_max[i]||0);
+            if (chuva >= 10) {
+                var cc = classeChuva(chuva);
+                alertas.push([local.municipio, local.nis.join(', '), data_dia, chuva.toFixed(1), prob, cc.texto]);
+            }
+        });
+    });
+
+    var wsAlertas = XLSX.utils.aoa_to_sheet(alertas);
+    wsAlertas['!cols'] = [{wch:22},{wch:35},{wch:12},{wch:18},{wch:16},{wch:18}];
+    XLSX.utils.book_append_sheet(wb, wsAlertas, 'Alertas Chuva');
+
+    /* Gera e baixa o arquivo */
+    var dataStr = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, 'GOINFRA_Clima_'+dataStr+'.xlsx');
+
+    if (btnExp) { btnExp.disabled = false; btnExp.textContent = '📥 Exportar Excel'; }
 }
 
 carregarLocais();

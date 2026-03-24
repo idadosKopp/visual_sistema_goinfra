@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOPP · Engajamento de Equipes</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth.js"></script>
+    <style>
+        /* ══════════════════════════════════════
+           KOPP LIGHT THEME — CSS VARIABLES
+        ══════════════════════════════════════ */
+        :root {
+            --kopp-blue:      #1565C0;
+            --kopp-blue-mid:  #1976D2;
+            --kopp-blue-light:#E3F0FF;
+            --kopp-gold:      #B8860B;
+            --kopp-gold-light:#FFF8E1;
+            --kopp-gold-bright:#D4A017;
+
+            --bg-page:   #F2F4F7;
+            --bg-card:   #FFFFFF;
+            --bg-card2:  #F8F9FB;
+            --border:    #E0E4EC;
+            --border-strong: #C5CBDA;
+
+            --text-primary:   #1A2035;
+            --text-secondary: #4A5568;
+            --text-muted:     #8892A4;
+
+            --green:  #1E8B5A;
+            --green-bg: #E8F5EE;
+            --red:    #C62828;
+            --red-bg: #FDECEA;
+            --amber:  #B45309;
+            --amber-bg: #FEF3C7;
+
+            --shadow-sm: 0 1px 3px rgba(21,101,192,0.08), 0 1px 2px rgba(21,101,192,0.04);
+            --shadow-md: 0 4px 12px rgba(21,101,192,0.10), 0 2px 4px rgba(21,101,192,0.06);
+            --shadow-lg: 0 8px 24px rgba(21,101,192,0.12), 0 3px 8px rgba(21,101,192,0.08);
+
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── Reset page to light ── */
+        body, .app-shell, .main-content, .page-body, .sidebar {
+            background: var(--bg-page) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .sidebar {
+            background: var(--kopp-blue) !important;
+            border-right: none !important;
+            box-shadow: 2px 0 16px rgba(21,101,192,0.18) !important;
+        }
+        .sidebar-logo .brand { color: #fff !important; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 1.1rem; }
+        .sidebar-logo .sub   { color: rgba(255,255,255,0.55) !important; font-size: 11px; }
+        .sidebar nav a       { color: rgba(255,255,255,0.7) !important; border-radius: 8px; margin: 2px 8px; transition: all 0.15s; }
+        .sidebar nav a:hover { background: rgba(255,255,255,0.12) !important; color: #fff !important; }
+        .sidebar nav a.active { background: rgba(255,255,255,0.18) !important; color: #fff !important; font-weight: 600; }
+        .sidebar-footer a { color: rgba(255,255,255,0.45) !important; }
+
+        .page-header { background: var(--bg-card); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .page-header h1 { color: var(--text-primary) !important; font-family: 'DM Sans', sans-serif; font-size: 1.25rem; font-weight: 700; }
+        .page-header p  { color: var(--text-muted) !important; font-size: 12px; }
+
+        /* ══════════════════════════════════════
+           EQUIPES PAGE LAYOUT
+        ══════════════════════════════════════ */
+        .eq-body { display: flex; flex-direction: column; gap: 20px; padding: 4px 0; }
+
+        /* ── Filtros ── */
+        .eq-filtros {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .eq-filtro { display: flex; flex-direction: column; gap: 5px; min-width: 140px; flex: 1; }
+        .eq-filtro label {
+            font-size: 10px; font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.8px; text-transform: uppercase;
+        }
+        .eq-filtro select {
+            padding: 7px 10px;
+            background: var(--bg-card2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px; font-family: 'DM Sans', sans-serif;
+            outline: none; cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .eq-filtro select:focus { border-color: var(--kopp-blue); box-shadow: 0 0 0 3px rgba(21,101,192,0.10); }
+        .eq-filtro select option { background: #fff; color: var(--text-primary); }
+        .btn-lf {
+            padding: 7px 14px; border-radius: 8px; font-size: 11px; cursor: pointer;
+            border: 1px solid var(--border); background: var(--bg-card2);
+            color: var(--red); height: 34px; align-self: flex-end;
+            font-family: 'DM Sans', sans-serif; font-weight: 600;
+            transition: all 0.15s;
+        }
+        .btn-lf:hover { background: var(--red-bg); border-color: var(--red); }
+
+        /* ══════════════════════════════════════
+           KPI CARDS
+        ══════════════════════════════════════ */
+        .eq-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+
+        .eq-kpi {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .eq-kpi:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        .eq-kpi::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            border-radius: 3px 3px 0 0;
+        }
+        .eq-kpi.blue::after   { background: linear-gradient(90deg, var(--kopp-blue), #42A5F5); }
+        .eq-kpi.gold::after   { background: linear-gradient(90deg, var(--kopp-gold), var(--kopp-gold-bright)); }
+        .eq-kpi.green::after  { background: linear-gradient(90deg, var(--green), #34D399); }
+        .eq-kpi.red::after    { background: linear-gradient(90deg, var(--red), #EF5350); }
+        .eq-kpi.teal::after   { background: linear-gradient(90deg, #0097A7, #00BCD4); }
+
+        .eq-kpi-label {
+            font-size: 10px; font-weight: 600; color: var(--text-muted);
+            letter-spacing: 0.7px; text-transform: uppercase; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .eq-kpi-val {
+            font-family: 'DM Mono', monospace;
+            font-size: 2rem; font-weight: 500;
+            color: var(--text-primary); line-height: 1;
+        }
+        .eq-kpi-sub {
+            font-size: 11px; color: var(--text-muted); margin-top: 4px;
+        }
+
+        /* ══════════════════════════════════════
+           SECTION TITLE
+        ══════════════════════════════════════ */
+        .eq-sec-title {
+            font-size: 11px; font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .eq-sec-title::before {
+            content: '';
+            width: 3px; height: 16px;
+            background: var(--kopp-blue);
+            border-radius: 2px;
+        }
+
+        /* ══════════════════════════════════════
+           EQUIPES TOTAIS — TEAM PANELS
+        ══════════════════════════════════════ */
+        .eq-teams-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media(max-width: 860px){ .eq-teams-duo { grid-template-columns: 1fr; } }
+
+        .eq-team-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .eq-team-header {
+            padding: 14px 18px 12px;
+            display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .eq-team-header.civil    { background: linear-gradient(135deg, #E3F0FF 0%, #F0F6FF 100%); }
+        .eq-team-header.eletrica { background: linear-gradient(135deg, #FFF8E1 0%, #FFFDF0 100%); }
+
+        .th-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .civil    .th-icon { background: rgba(21,101,192,0.12); }
+        .eletrica .th-icon { background: rgba(212,160,23,0.15); }
+
+        .th-info { flex: 1; }
+        .th-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .civil    .th-title { color: var(--kopp-blue); }
+        .eletrica .th-title { color: var(--kopp-gold); }
+
+        .th-subtitle { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+        .th-badge {
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 700;
+        }
+        .civil    .th-badge { background: var(--kopp-blue-light); color: var(--kopp-blue); }
+        .eletrica .th-badge { background: var(--kopp-gold-light); color: var(--kopp-gold); }
+
+        /* ── Progress ring + stats ── */
+        .eq-team-body { padding: 18px; }
+
+        .team-progress-row { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; }
+
+        .progress-ring-wrap { position: relative; flex-shrink: 0; }
+        .progress-ring-wrap svg { transform: rotate(-90deg); }
+        .ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+        .ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(.4,0,.2,1); }
+        .civil .ring-fill    { stroke: var(--kopp-blue); }
+        .eletrica .ring-fill { stroke: var(--kopp-gold-bright); }
+        .ring-label {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .ring-pct {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.3rem; font-weight: 500;
+            color: var(--text-primary); display: block; line-height: 1;
+        }
+        .ring-sub { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+        .team-stats-mini { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .tsm-item { display: flex; justify-content: space-between; align-items: center; }
+        .tsm-label { font-size: 11px; color: var(--text-secondary); }
+        .tsm-val { font-size: 12px; font-weight: 700; color: var(--text-primary); font-family: 'DM Mono', monospace; }
+        .tsm-val.ok     { color: var(--green); }
+        .tsm-val.warn   { color: var(--amber); }
+        .tsm-val.bad    { color: var(--red); }
+
+        /* ── Etapas barras ── */
+        .eq-team-etapas { display: flex; flex-direction: column; gap: 7px; }
+        .etapa-row { display: flex; align-items: center; gap: 8px; }
+        .etapa-nome { font-size: 10px; color: var(--text-secondary); width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .etapa-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .etapa-bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+        .civil .etapa-bar-fill    { background: linear-gradient(90deg, var(--kopp-blue), #42A5F5); }
+        .eletrica .etapa-bar-fill { background: linear-gradient(90deg, var(--kopp-gold), var(--kopp-gold-bright)); }
+        .etapa-pct-txt { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-muted); width: 34px; text-align: right; flex-shrink: 0; }
+
+        .team-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+        /* ══════════════════════════════════════
+           TABELA PRAZO
+        ══════════════════════════════════════ */
+        .eq-prazo-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .eq-prazo-header {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg-card2);
+        }
+        .eq-prazo-header span { font-size: 11px; color: var(--text-muted); }
+        .eq-prazo-scroll { max-height: 340px; overflow-y: auto; }
+
+        .eq-prazo-table { width: 100%; border-collapse: collapse; }
+        .eq-prazo-table thead th {
+            font-size: 9px; color: var(--text-muted);
+            padding: 8px 12px; text-align: left;
+            background: var(--bg-card2);
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.8px; text-transform: uppercase;
+            font-weight: 600; position: sticky; top: 0;
+        }
+        .eq-prazo-table tbody td {
+            font-size: 11px; color: var(--text-primary);
+            padding: 7px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .eq-prazo-table tbody tr:last-child td { border-bottom: none; }
+        .eq-prazo-table tbody tr:hover { background: var(--bg-card2); }
+
+        /* badge status */
+        .badge-status {
+            display: inline-block; padding: 3px 8px; border-radius: 20px;
+            font-size: 9px; font-weight: 700; letter-spacing: 0.3px;
+        }
+        .badge-status.ok   { background: var(--green-bg); color: var(--green); }
+        .badge-status.late { background: var(--red-bg); color: var(--red); }
+        .badge-status.warn { background: var(--amber-bg); color: var(--amber); }
+        .badge-status.nd   { background: var(--bg-card2); color: var(--text-muted); border: 1px solid var(--border); }
+
+        .delta-dias { font-size: 10px; font-weight: 700; font-family: 'DM Mono', monospace; }
+        .delta-dias.ok   { color: var(--green); }
+        .delta-dias.late { color: var(--red); }
+        .delta-dias.nd   { color: var(--text-muted); }
+
+        .id-equip { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--kopp-blue); }
+
+        /* ══════════════════════════════════════
+           ETAPAS GRID
+        ══════════════════════════════════════ */
+        .eq-etapa-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media(max-width: 860px){ .eq-etapa-duo { grid-template-columns: 1fr; } }
+
+        .eq-etapa-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .eq-etapa-card-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .eq-etapa-card-header.civil    { color: var(--kopp-blue); background: #F0F6FF; }
+        .eq-etapa-card-header.eletrica { color: var(--kopp-gold); background: #FFFDF0; }
+
+        .eq-etapa-table { width: 100%; border-collapse: collapse; }
+        .eq-etapa-table thead th { font-size: 8px; color: var(--text-muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; background: var(--bg-card2); }
+        .eq-etapa-table tbody td { font-size: 10px; color: var(--text-primary); padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .eq-etapa-table tbody tr:last-child td { border-bottom: none; }
+        .eq-etapa-table tbody tr:hover { background: var(--bg-card2); }
+
+        .prog-wrap { display: flex; align-items: center; gap: 6px; }
+        .prog-bg   { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 3px; }
+        .prog-fill.civil    { background: linear-gradient(90deg, var(--kopp-blue), #42A5F5); }
+        .prog-fill.eletrica { background: linear-gradient(90deg, var(--kopp-gold), var(--kopp-gold-bright)); }
+
+        /* Loader override */
+        .loader { background: var(--bg-page) !important; }
+        .loader-ring { border-color: rgba(21,101,192,0.2) !important; border-top-color: var(--kopp-blue) !important; }
+        .loader { color: var(--text-muted) !important; }
+    </style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="loader-ring"></div>CARREGANDO DADOS...</div>
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand">🛣️ GOINFRA</div>
+            <div class="sub">Monitoramento KOPP</div>
+        </div>
+        <nav>
+            <a href="index.html"><span class="nav-icon">📊</span> Painel</a>
+            <a href="rotas.html"><span class="nav-icon">🗺️</span> Rotas</a>
+            <a href="sinalizacao.html"><span class="nav-icon">🚧</span> Sinalização</a>
+            <a href="equipes.html" class="active"><span class="nav-icon">👷</span> Equipes</a>
+            <a href="clima.html"><span class="nav-icon">🌦️</span> Clima</a>
+        </nav>
+        <div class="sidebar-footer"><a class="sair" onclick="sair()">⏻ Sair</a></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>👷 Engajamento de Equipes</h1>
+                <p>Progresso coletivo · Tempo por etapa · Prazo de instalação</p>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="eq-body">
+
+                <!-- FILTROS -->
+                <div class="eq-filtros">
+                    <div class="eq-filtro">
+                        <label>NI</label>
+                        <select id="eqFiltroNI"></select>
+                    </div>
+                    <div class="eq-filtro">
+                        <label>Período (Prazo)</label>
+                        <select id="eqFiltroPeriodo">
+                            <option value="">Todos os prazos</option>
+                            <option value="atrasado">⚠️ Atrasados</option>
+                            <option value="ok">✅ Dentro do prazo</option>
+                            <option value="futuro">📅 Prazo futuro</option>
+                        </select>
+                    </div>
+                    <button class="btn-lf" onclick="limparFiltrosEq()">✕ Limpar filtros</button>
+                </div>
+
+                <!-- KPIs GERAIS -->
+                <div class="eq-kpis" id="eqKpis"></div>
+
+                <!-- PAINEL CIVIL + ELÉTRICA -->
+                <div class="eq-sec-title">📊 Desempenho Coletivo por Tipo de Equipe</div>
+                <div class="eq-teams-duo">
+
+                    <!-- CIVIL -->
+                    <div class="eq-team-panel civil" id="panelCivil">
+                        <div class="eq-team-header civil">
+                            <div class="th-icon">🏗️</div>
+                            <div class="th-info">
+                                <div class="th-title">Equipes Civis</div>
+                                <div class="th-subtitle" id="civilSubtitle">Total coletivo</div>
+                            </div>
+                            <span class="th-badge" id="civilBadge">—</span>
+                        </div>
+                        <div class="eq-team-body">
+                            <div class="team-progress-row">
+                                <div class="progress-ring-wrap civil">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle class="ring-track" cx="40" cy="40" r="33"/>
+                                        <circle class="ring-fill" id="ringCivil" cx="40" cy="40" r="33"
+                                            stroke-dasharray="207.3"
+                                            stroke-dashoffset="207.3"/>
+                                    </svg>
+                                    <div class="ring-label">
+                                        <span class="ring-pct" id="ringCivilPct">0%</span>
+                                        <span class="ring-sub">CONCL.</span>
+                                    </div>
+                                </div>
+                                <div class="team-stats-mini" id="civilStats"></div>
+                            </div>
+                            <hr class="team-divider">
+                            <div class="eq-team-etapas civil" id="civilEtapas"></div>
+                        </div>
+                    </div>
+
+                    <!-- ELÉTRICA -->
+                    <div class="eq-team-panel eletrica" id="panelEletrica">
+                        <div class="eq-team-header eletrica">
+                            <div class="th-icon">⚡</div>
+                            <div class="th-info">
+                                <div class="th-title">Equipes Elétricas</div>
+                                <div class="th-subtitle" id="eletricaSubtitle">Total coletivo</div>
+                            </div>
+                            <span class="th-badge" id="eletricaBadge">—</span>
+                        </div>
+                        <div class="eq-team-body">
+                            <div class="team-progress-row">
+                                <div class="progress-ring-wrap eletrica">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle class="ring-track" cx="40" cy="40" r="33"/>
+                                        <circle class="ring-fill" id="ringEletrica" cx="40" cy="40" r="33"
+                                            stroke-dasharray="207.3"
+                                            stroke-dashoffset="207.3"/>
+                                    </svg>
+                                    <div class="ring-label">
+                                        <span class="ring-pct" id="ringEletricaPct">0%</span>
+                                        <span class="ring-sub">CONCL.</span>
+                                    </div>
+                                </div>
+                                <div class="team-stats-mini" id="eletricaStats"></div>
+                            </div>
+                            <hr class="team-divider">
+                            <div class="eq-team-etapas eletrica" id="eletricaEtapas"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEMPO MÉDIO POR ETAPA -->
+                <div class="eq-sec-title">⏱️ Tempo Médio por Etapa (Projetado → Realizado)</div>
+                <div class="eq-etapa-duo">
+                    <div class="eq-etapa-card">
+                        <div class="eq-etapa-card-header civil">🏗️ Etapas Civis</div>
+                        <table class="eq-etapa-table">
+                            <thead><tr>
+                                <th>Etapa</th><th>Concluídas</th>
+                                <th style="width:120px">Progresso</th><th>Δ médio</th>
+                            </tr></thead>
+                            <tbody id="tblEtapasCivil"></tbody>
+                        </table>
+                    </div>
+                    <div class="eq-etapa-card">
+                        <div class="eq-etapa-card-header eletrica">⚡ Etapas Elétricas</div>
+                        <table class="eq-etapa-table">
+                            <thead><tr>
+                                <th>Etapa</th><th>Concluídas</th>
+                                <th style="width:120px">Progresso</th><th>Δ médio</th>
+                            </tr></thead>
+                            <tbody id="tblEtapasEletrica"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TABELA PRAZO -->
+                <div class="eq-sec-title">📅 Equipamentos vs Prazo de Instalação</div>
+                <div class="eq-prazo-wrap">
+                    <div class="eq-prazo-header">
+                        <span>Comparativo entre <strong style="color:var(--text-primary);">Prazo_Instalacao</strong> e última etapa concluída</span>
+                        <span id="prazoCount" style="font-size:10px;color:var(--text-muted);"></span>
+                    </div>
+                    <div class="eq-prazo-scroll">
+                        <table class="eq-prazo-table">
+                            <thead><tr>
+                                <th>ID Equip.</th>
+                                <th>Município</th>
+                                <th>Prazo</th>
+                                <th>Última etapa</th>
+                                <th>Δ dias</th>
+                                <th>Status</th>
+                            </tr></thead>
+                            <tbody id="tblPrazo"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/carregar_excel.js"></script>
+<script>
+
+/* ══════════════════════════════════════════════════════
+   CONFIGURAÇÃO DAS ETAPAS
+══════════════════════════════════════════════════════ */
+var ETAPAS_CIVIL = [
+    { nome:'Furação',         proj:'FURACAO_PROJETADO',                          real:'FURACAO_REALIZADO' },
+    { nome:'Fixação',         proj:'FIXACAO_POSTES_PROJETADO',                   real:'FIXACAO_POSTES_REALIZADO' },
+    { nome:'Estruturas',      proj:'ESTRUTURAS_PROJETADO',                       real:'ESTRUTURAS_REALIZADO' },
+    { nome:'Travessia',       proj:'TRAVESSIA_INTERLIGACAO_PROJETADO',           real:'TRAVESSIA_INTERLIGACAO_REALIZADO' },
+    { nome:'Sin. Aérea',      proj:'SINALIZACAO_AEREA_BASE_PROJETADO',           real:'SINALIZACAO_AEREA_BASE_REALIZADO' },
+    { nome:'Sin. Terrestre',  proj:'SINALIZACAO_TERRESTRE_FIZACAO_PROJETADO',    real:'SINALIZACAO_TERRESTRE_FIZACAO_REALIZADO' }
+];
+var ETAPAS_ELETRICA = [
+    { nome:'Montagem',        proj:'MONTAGEM_PROJETADO',            real:'MONTAGEM_REALIZADO' },
+    { nome:'Mont. Estrutural',proj:'MONTAGEM_ESTRUTURAL_PROJETADO', real:'MONTAGEM_ESTRUTURAL_REALIZADO' },
+    { nome:'Aferição',        proj:'AFERICAO_PROJETADO',            real:'AFERICAO_REALIZADO' }
+];
+var TODAS_ETAPAS_REAL = [
+    'FURACAO_REALIZADO','FIXACAO_POSTES_REALIZADO','ESTRUTURAS_REALIZADO',
+    'TRAVESSIA_INTERLIGACAO_REALIZADO','SINALIZACAO_AEREA_BASE_REALIZADO',
+    'SINALIZACAO_AEREA_ICAMENTO_REALIZADO','SINALIZACAO_TERRESTRE_FIZACAO_REALIZADO',
+    'SINALIZACAO_TERRESTRE_CONCRETAGEM_REALIZADO','MONTAGEM_REALIZADO',
+    'MONTAGEM_ESTRUTURAL_REALIZADO','AFERICAO_REALIZADO'
+];
+
+/* ── Utils ── */
+function parseData(str) {
+    if (!str) return null;
+    var s = String(str).trim();
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return new Date(+m[3], +m[2]-1, +m[1]);
+    var m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m2) return new Date(+m2[1], +m2[2]-1, +m2[3]);
+    var n = parseFloat(s);
+    if (!isNaN(n) && n > 40000) {
+        var d = new Date(Date.UTC(1899,11,30) + n*86400000);
+        return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    }
+    return null;
+}
+function fmtData(d) {
+    if (!d) return '—';
+    return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+function diffDias(a, b) {
+    if (!a || !b) return null;
+    return Math.round((b - a) / 86400000);
+}
+function ultimaEtapaReal(d) {
+    var ultima = null;
+    TODAS_ETAPAS_REAL.forEach(function(col){
+        var dt = parseData(d[col]);
+        if (dt && (!ultima || dt > ultima)) ultima = dt;
+    });
+    return ultima;
+}
+function etapasCivilOk(d) {
+    var ok=0, tot=0;
+    ETAPAS_CIVIL.forEach(function(e){ tot++; if (d[e.real] && String(d[e.real]).trim()!=='') ok++; });
+    return {ok:ok, tot:tot};
+}
+function etapasEletricaOk(d) {
+    var ok=0, tot=0;
+    ETAPAS_ELETRICA.forEach(function(e){
+        if (e.nome==='Mont. Estrutural' && (!d[e.real]||String(d[e.real]).trim()==='')) return;
+        tot++;
+        if (d[e.real] && String(d[e.real]).trim()!=='') ok++;
+    });
+    return {ok:ok, tot:tot};
+}
+
+/* ── Dados globais ── */
+var _dadosBase = [];
+var _dadosFiltrados = [];
+
+function inicializarEquipes(dados) {
+    _dadosBase = dados;
+    _preencherSelects();
+    _aplicarFiltros();
+}
+
+function _preencherSelects() {
+    _fillSel('eqFiltroNI', 'nis');
+    ['eqFiltroNI','eqFiltroPeriodo'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', _aplicarFiltros);
+    });
+}
+
+function _fillSel(id, campo) {
+    var sel = document.getElementById(id); if (!sel) return;
+    var vals = [];
+    _dadosBase.forEach(function(d){ var v=String(d[campo]||'').trim(); if(v&&vals.indexOf(v)===-1) vals.push(v); });
+    vals.sort();
+    sel.innerHTML = '<option value="">Todos</option>';
+    vals.forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+}
+
+function limparFiltrosEq() {
+    ['eqFiltroNI','eqFiltroPeriodo'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    _aplicarFiltros();
+}
+
+function _aplicarFiltros() {
+    var ni      = (document.getElementById('eqFiltroNI')     ||{}).value||'';
+    var periodo = (document.getElementById('eqFiltroPeriodo')||{}).value||'';
+    var hoje    = new Date(); hoje.setHours(0,0,0,0);
+
+    _dadosFiltrados = _dadosBase.filter(function(d){
+        if (ni && String(d.nis||'').trim() !== ni) return false;
+        if (periodo) {
+            var prazo = parseData(d.Prazo_Instalacao);
+            if (periodo==='atrasado' && (!prazo || prazo >= hoje)) return false;
+            if (periodo==='ok'       && (!prazo || prazo < hoje))  return false;
+            if (periodo==='futuro'   && (!prazo || prazo <= hoje)) return false;
+        }
+        return true;
+    });
+
+    _renderKpis();
+    _renderTeams();
+    _renderEtapas();
+    _renderPrazo();
+}
+
+/* ══════════════════════════════════════════════════════
+   KPIs
+══════════════════════════════════════════════════════ */
+function _renderKpis() {
+    var lista = _dadosFiltrados;
+    var hoje  = new Date(); hoje.setHours(0,0,0,0);
+    var total = lista.length;
+    var online = lista.filter(function(d){ return String(d.ONLINE||'').toUpperCase().trim()==='ONLINE'; }).length;
+
+    var eqCivSet={}, eqElSet={};
+    lista.forEach(function(d){
+        if(d.Equipe_civil)      eqCivSet[d.Equipe_civil]=1;
+        if(d.Equipe_eletronica) eqElSet[d.Equipe_eletronica]=1;
+    });
+
+    var dentro=0, atrasado=0, semPrazo=0;
+    lista.forEach(function(d){
+        var p = parseData(d.Prazo_Instalacao);
+        if (!p) { semPrazo++; return; }
+        if (p >= hoje) dentro++; else atrasado++;
+    });
+
+    var sumCivil=0, sumEletrica=0;
+    lista.forEach(function(d){
+        var c=etapasCivilOk(d), e=etapasEletricaOk(d);
+        sumCivil    += c.tot>0 ? c.ok/c.tot : 0;
+        sumEletrica += e.tot>0 ? e.ok/e.tot : 0;
+    });
+    var pctCivil    = total>0 ? Math.round(sumCivil/total*100)    : 0;
+    var pctEletrica = total>0 ? Math.round(sumEletrica/total*100) : 0;
+
+    var el = document.getElementById('eqKpis'); if(!el) return;
+    el.innerHTML =
+        _kpi('blue',  '📦', total,                          'Total equipamentos',       '') +
+        _kpi('green', '✅', online+' / '+total,              'Online',                   Math.round(online/Math.max(total,1)*100)+'%') +
+        _kpi('blue',  '🏗️', Object.keys(eqCivSet).length,    'Equipes civis',            pctCivil+'% concl. médio') +
+        _kpi('gold',  '⚡', Object.keys(eqElSet).length,     'Equipes elétricas',        pctEletrica+'% concl. médio') +
+        _kpi('red',   '⚠️', atrasado,                        'Equipamentos atrasados',   'Prazo < hoje') +
+        _kpi('teal',  '📅', dentro,                          'Dentro do prazo',          semPrazo+' sem prazo');
+}
+function _kpi(cor, icon, val, label, sub) {
+    return '<div class="eq-kpi '+cor+'">' +
+        '<div class="eq-kpi-label">'+icon+' '+label+'</div>' +
+        '<div class="eq-kpi-val">'+val+'</div>' +
+        (sub?'<div class="eq-kpi-sub">'+sub+'</div>':'') + '</div>';
+}
+
+/* ══════════════════════════════════════════════════════
+   PAINÉIS DE EQUIPE (totais coletivos, sem ranking)
+══════════════════════════════════════════════════════ */
+function _renderTeams() {
+    _renderTeamPanel('civil');
+    _renderTeamPanel('eletrica');
+}
+
+function _renderTeamPanel(tipo) {
+    var lista = _dadosFiltrados;
+    var total = lista.length || 1;
+    var etapas = tipo === 'civil' ? ETAPAS_CIVIL : ETAPAS_ELETRICA;
+    var fn     = tipo === 'civil' ? etapasCivilOk : etapasEletricaOk;
+    var campo  = tipo === 'civil' ? 'Equipe_civil' : 'Equipe_eletronica';
+    var hoje   = new Date(); hoje.setHours(0,0,0,0);
+
+    /* contagem equipes únicas */
+    var eqSet = {};
+    lista.forEach(function(d){ if(d[campo]) eqSet[d[campo]]=1; });
+    var nEq = Object.keys(eqSet).length;
+
+    /* total geral */
+    var totalOk=0, totalTot=0, atrasados=0, emDia=0;
+    lista.forEach(function(d){
+        var r = fn(d);
+        totalOk  += r.ok;
+        totalTot += r.tot;
+        var prazo = parseData(d.Prazo_Instalacao);
+        var ultima = ultimaEtapaReal(d);
+        if (prazo && ultima) {
+            var delta = diffDias(ultima, prazo);
+            if (delta < 0) atrasados++; else emDia++;
+        }
+    });
+
+    var pctGeral = totalTot>0 ? Math.round(totalOk/totalTot*100) : 0;
+    var circumference = 207.3;
+    var offset = circumference - (pctGeral/100)*circumference;
+
+    /* Ring */
+    var ringEl  = document.getElementById('ring' + (tipo==='civil'?'Civil':'Eletrica'));
+    var ringPct = document.getElementById('ring' + (tipo==='civil'?'Civil':'Eletrica') + 'Pct');
+    if (ringEl)  ringEl.style.strokeDashoffset  = offset;
+    if (ringPct) ringPct.textContent = pctGeral+'%';
+
+    /* Badge */
+    var badgeEl    = document.getElementById(tipo+'Badge');
+    var subtitleEl = document.getElementById(tipo+'Subtitle');
+    if (badgeEl)    badgeEl.textContent    = nEq + (nEq===1?' equipe':' equipes');
+    if (subtitleEl) subtitleEl.textContent = total + ' equipamentos no filtro';
+
+    /* Stats */
+    var statsEl = document.getElementById(tipo+'Stats');
+    if (statsEl) {
+        var completosTotal = lista.filter(function(d){ var r=fn(d); return r.ok===r.tot && r.tot>0; }).length;
+        var pctCompletos = Math.round(completosTotal/lista.length*100) || 0;
+        statsEl.innerHTML =
+            _tsmItem('Etapas concluídas',     totalOk+' / '+totalTot,         '') +
+            _tsmItem('Equipamentos completos', completosTotal+' ('+pctCompletos+'%)',  pctCompletos>=70?'ok':pctCompletos>=40?'warn':'bad') +
+            _tsmItem('Dentro do prazo',        emDia,                          emDia>atrasados?'ok':'warn') +
+            _tsmItem('Com atraso',             atrasados,                      atrasados>0?'bad':'ok');
+    }
+
+    /* Barras de etapas */
+    var etapasEl = document.getElementById(tipo+'Etapas');
+    if (etapasEl) {
+        etapasEl.innerHTML = etapas.map(function(e){
+            var concl = lista.filter(function(d){ return d[e.real]&&String(d[e.real]).trim()!==''; }).length;
+            var pct   = Math.round(concl/lista.length*100)||0;
+            return '<div class="etapa-row">'+
+                '<span class="etapa-nome">'+e.nome+'</span>'+
+                '<div class="etapa-bar-bg"><div class="etapa-bar-fill" style="width:'+pct+'%"></div></div>'+
+                '<span class="etapa-pct-txt">'+pct+'%</span>'+
+                '</div>';
+        }).join('');
+    }
+}
+
+function _tsmItem(label, val, cls) {
+    return '<div class="tsm-item"><span class="tsm-label">'+label+'</span><span class="tsm-val '+(cls||'")>'+val+'</span></div>');
+}
+
+/* ══════════════════════════════════════════════════════
+   ETAPAS DETALHE
+══════════════════════════════════════════════════════ */
+function _renderEtapas() {
+    _fillEtapaTabela('tblEtapasCivil',    ETAPAS_CIVIL,    'civil');
+    _fillEtapaTabela('tblEtapasEletrica', ETAPAS_ELETRICA, 'eletrica');
+}
+function _fillEtapaTabela(tbId, etapas, tipo) {
+    var tb = document.getElementById(tbId); if(!tb) return;
+    var lista = _dadosFiltrados;
+    var total = lista.length || 1;
+    tb.innerHTML = etapas.map(function(e){
+        var concl=0, deltaSum=0, deltaCnt=0;
+        lista.forEach(function(d){
+            if (!d[e.real]||String(d[e.real]).trim()==='') return;
+            concl++;
+            var proj=parseData(d[e.proj]), real=parseData(d[e.real]);
+            if(proj&&real){ deltaSum+=diffDias(proj,real); deltaCnt++; }
+        });
+        var pct  = Math.round(concl/total*100);
+        var dAvg = deltaCnt>0 ? Math.round(deltaSum/deltaCnt) : null;
+        var dHtml = dAvg===null ? '<span style="color:var(--text-muted)">—</span>'
+            : dAvg>=0
+                ? '<span style="color:var(--green);font-weight:700;">+'+dAvg+'d antes</span>'
+                : '<span style="color:var(--red);font-weight:700;">'+dAvg+'d atraso</span>';
+        return '<tr>'+
+            '<td style="font-weight:600;">'+e.nome+'</td>'+
+            '<td style="text-align:center;">'+concl+' / '+total+'</td>'+
+            '<td><div class="prog-wrap">'+
+                '<div class="prog-bg"><div class="prog-fill '+tipo+'" style="width:'+pct+'%"></div></div>'+
+                '<span style="font-size:9px;color:var(--text-muted);min-width:28px;text-align:right;">'+pct+'%</span>'+
+            '</div></td>'+
+            '<td>'+dHtml+'</td>'+
+            '</tr>';
+    }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   TABELA PRAZO
+══════════════════════════════════════════════════════ */
+function _renderPrazo() {
+    var tb    = document.getElementById('tblPrazo');
+    var count = document.getElementById('prazoCount');
+    if(!tb) return;
+    var hoje  = new Date(); hoje.setHours(0,0,0,0);
+    var lista = _dadosFiltrados;
+    if (count) count.textContent = lista.length + ' equipamentos';
+    if (lista.length===0) {
+        tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum dado encontrado</td></tr>';
+        return;
+    }
+    tb.innerHTML = lista.map(function(d){
+        var prazo  = parseData(d.Prazo_Instalacao);
+        var ultima = ultimaEtapaReal(d);
+        var delta  = diffDias(ultima, prazo);
+        var statusHtml, deltaHtml;
+        if (!prazo) {
+            statusHtml = '<span class="badge-status nd">Sem prazo</span>';
+            deltaHtml  = '<span class="delta-dias nd">—</span>';
+        } else if (!ultima) {
+            var dr = diffDias(hoje, prazo);
+            statusHtml = dr>=0 ? '<span class="badge-status warn">Não iniciado</span>' : '<span class="badge-status late">Atrasado</span>';
+            deltaHtml  = '<span class="delta-dias nd">—</span>';
+        } else {
+            if (delta>0)      { statusHtml='<span class="badge-status ok">✓ No prazo</span>';  deltaHtml='<span class="delta-dias ok">+'+delta+'d</span>'; }
+            else if (delta===0){ statusHtml='<span class="badge-status ok">✓ Exato</span>';    deltaHtml='<span class="delta-dias ok">0d</span>'; }
+            else              { statusHtml='<span class="badge-status late">Atrasado</span>';  deltaHtml='<span class="delta-dias late">'+delta+'d</span>'; }
+        }
+        return '<tr>'+
+            '<td><span class="id-equip">'+(d.ID_Equip||'—')+'</span></td>'+
+            '<td style="font-weight:600;">'+(d.municipio||'—')+'</td>'+
+            '<td>'+(prazo?fmtData(prazo):'—')+'</td>'+
+            '<td>'+(ultima?fmtData(ultima):'—')+'</td>'+
+            '<td>'+deltaHtml+'</td>'+
+            '<td>'+statusHtml+'</td>'+
+            '</tr>';
+    }).join('');
+}
+
+/* boot */
+carregarDados(inicializarEquipes);
+</script>
+</body>
+</html>
